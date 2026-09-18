@@ -1,0 +1,13 @@
+model User {
+  id           String                   @id @default(uuid())
+  phone        String                   @unique
+  phoneVerified Boolean                  @default(false)
+  name         String?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  pushToken PushToken[]
+
+  activeStatus ActiveStatus?
+  friendshipSent Friendship[] @relation("FriendshipInitiator")
+  friendshipReceived Friendship[] @relation("FriendshipReceiver")
+}

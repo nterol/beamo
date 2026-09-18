@@ -1,0 +1,16 @@
+{
+  "name": "@beamo/notifications",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "echo 'No lint configured for @beamo/notifications yet'",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo 'No tests yet for @beamo/notifications'"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

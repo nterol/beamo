@@ -1,0 +1,20 @@
+{
+  "name": "beamo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @beamo/api --filter @beamo/worker dev",
+    "dev:infra": "docker compose -f infrastructure/docker-compose.yml up -d",
+    "dev:api": "pnpm --filter @beamo/api dev",
+    "dev:worker": "pnpm --filter @beamo/worker dev",
+    "dev:mobile": "pnpm --filter @beamo/mobile dev",
+    "db:generate": "pnpm --filter @beamo/db db:generate",
+    "db:migrate": "pnpm --filter @beamo/db db:migrate",
+    "db:studio": "pnpm --filter @beamo/db db:studio",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}

@@ -1,0 +1,22 @@
+enum ActiveStatusCategory {
+    movie
+    drink
+    coffee
+    outdoor
+    sport
+    other
+}
+
+model ActiveStatus {
+    id String @id @default(uuid())
+    userID String @unique
+
+    category ActiveStatusCategory
+    createdAt DateTime @default(now())
+    expiresAt DateTime
+    note String?
+
+
+    user User @relation(fields: [userID], references: [id], onDelete: Cascade)
+    @@index([expiresAt])
+}

@@ -1,0 +1,20 @@
+enum FriendshipStatus {
+    pending
+    accepted
+}
+
+model Friendship {
+id String @id @default(uuid())
+initiatorID String
+receiverID String
+status FriendshipStatus @default(pending)
+createdAt DateTime
+updateAt DateTime @updatedAt
+
+initiator User @relation("FriendshipInitiator", fields: [initiatorID], references: [id], onDelete: Cascade)
+receiver User @relation("FriendshipReceiver", fields: [receiverID], references: [id], onDelete: Cascade)
+
+
+@@unique([initiatorID, receiverID])
+@@index([receiverID])
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@beamo/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Initialize React Native app here (Expo or bare).';",
+    "build": "echo 'mobile build not configured yet'",
+    "lint": "echo 'No lint configured for @beamo/mobile yet'",
+    "typecheck": "echo 'No typecheck configured for @beamo/mobile yet'",
+    "test": "echo 'No tests yet for @beamo/mobile'"
+  }
+}

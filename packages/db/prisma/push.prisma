@@ -1,0 +1,19 @@
+enum DevicePlatform {
+  ios
+  android
+}
+
+model PushToken {
+    id String @id @default(uuid())
+    
+    userID String
+    user User @relation(fields: [userID], references: [id], onDelete: Cascade)
+
+    token String
+    platform DevicePlatform
+    isActive Boolean
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userID])
+}
