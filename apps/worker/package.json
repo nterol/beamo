@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "lint": "echo 'No lint configured for @beamo/worker yet'",
+    "lint": "biome lint",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "echo 'No tests yet for @beamo/worker'"
   },
   "dependencies": {
     "@beamo/db": "workspace:*",
     "@beamo/notifications": "workspace:*",
+    "@prisma/adapter-pg": "^7.10.0",
     "@temporalio/worker": "^1.11.7",
     "@temporalio/workflow": "^1.11.7"
   },

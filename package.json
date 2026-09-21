@@ -16,5 +16,8 @@
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14"
   }
 }

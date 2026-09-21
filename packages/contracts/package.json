@@ -11,7 +11,8 @@
     "test": "echo 'No tests yet for @beamo/contracts'"
   },
   "dependencies": {
-    "zod": "^3.24.4"
+    "@beamo/db": "workspace:*",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

@@ -3,25 +3,32 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./prisma/generated/prisma/client.ts",
-  "types": "./prisma/generated/prisma/client.ts",
+  "main": "./generated/prisma/client.ts",
+  "types": "./generated/prisma/client.ts",
   "exports": {
     ".": {
-      "types": "./prisma/generated/prisma/client.ts",
-      "default": "./prisma/generated/prisma/client.ts"
+      "types": "./generated/prisma/client.ts",
+      "default": "./generated/prisma/client.ts"
+    },
+    "./validation": {
+      "types": "./generated/validation/index.ts",
+      "default": "./generated/validation/index.ts"
     }
   },
   "scripts": {
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "lint": "biome lint"
   },
   "dependencies": {
     "@prisma/client": "^7.3.0",
     "dotenv": "^18.0.0",
-    "prisma": "^7.3.0"
+    "prisma": "^7.3.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "zod-prisma-types": "^3.3.11"
   }
 }
