@@ -5,8 +5,8 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import type { WithUser } from "../auth.js";
 import { db } from "../db.js";
+import type { WithUser } from "../middleware/auth.js";
 
 export const pushTokenRoute = new Hono<{
   Variables: WithUser;

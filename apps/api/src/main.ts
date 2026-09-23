@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
-import { requiredAuth } from "./auth.js";
+import { requiredAuth } from "./middleware/auth.js";
 import { pushTokenRoute } from "./routes/push-token.js";
 import { userRoute } from "./routes/user.js";
 

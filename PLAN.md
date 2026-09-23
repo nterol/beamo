@@ -11,7 +11,7 @@ App mobile où un utilisateur se déclare "actif" (dispo pour une sortie), ce qu
 
 | Sujet | Choix |
 |---|---|
-| Backend | NestJS (adapter `platform-fastify`) |
+| Backend | Hono (`@hono/node-server`) + validation `@hono/zod-validator` |
 | Mobile | Expo managed, iOS + Android |
 | Source des amis | Sync contacts (numéro hashé) + demande/acceptation in-app |
 | Temps réel | Aucun — polling client + push comme vrai signal |
@@ -29,7 +29,7 @@ App mobile où un utilisateur se déclare "actif" (dispo pour une sortie), ce qu
 
 4 composants, HTTP synchrone uniquement (pas de temps réel) :
 - **Mobile Expo** : consomme l'API REST, auth en secure storage, reçoit les push, polling léger.
-- **API NestJS** : seul accès DB, toute la logique sensible (réciprocité, expiration, blocage) y vit.
+- **API Hono** : seul accès DB, toute la logique sensible (réciprocité, expiration, blocage) y vit.
 - **PostgreSQL managé** : source de vérité unique, pas de Redis/broker nécessaire au stade MVP.
 - **Tiers** : Expo Push Notification Service (relai APNs/FCM) + Prelude Verify (OTP).
 
@@ -37,7 +37,7 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 
 ## Stack et arbitrages clés
 
-- **NestJS + `@nestjs/platform-fastify`** : choix assumé pour la valeur CV malgré le surcoût de boilerplate vs Fastify brut ; garde perf/plomberie Fastify sous la structure Nest (modules/DI/guards/pipes `class-validator`).
+- **Hono** (NestJS abandonné) : peu de boilerplate pour un porteur solo, validation Zod partagée via `@beamo/contracts`, et client typé de bout en bout pour le mobile (`hc<AppType>`, RPC Hono). Auth = middleware (`requireAuth`) qui pose `c.var.user`, pas de DI.
 - **Prisma** plutôt que Drizzle : migrations zéro-friction, Prisma Studio, pas de souci de cold-start serverless (process persistant).
 - **Expo Push Notification Service** : token → backend → API Expo Push (lots de 100) → APNs/FCM. Piège : traiter les *receipts* pour purger les tokens `DeviceNotRegistered`, sinon échecs silencieux. Push non testables sur simulateur iOS / Expo Go limité sur Android récent → dev client EAS sur device physique dès les tests push.
 - **Prelude Verify** pour l'OTP plutôt que fait maison ou Twilio : ≈0,06 €/vérif en France (0,032 € + SMS au coût opérateur) contre ≈0,13 $ chez Twilio Verify (0,05 $ + 0,0798 $/SMS FR, tarifs relevés en sept. 2026). À <1 000 inscriptions/an l'écart est négligeable ; choix fait sur la DX, la localisation UE (RGPD) et l'anti-fraude de base incluse. Le fournisseur reste interchangeable (voir « Auth »). À protéger impérativement par rate limiting (risque SMS pumping).
@@ -88,8 +88,8 @@ Mobile                          API                                  Fournisseur
   │── DELETE /auth/session ─────▶│ logout = suppression de la Session
 ```
 
-- **Fournisseur interchangeable** : un provider Nest `OTP_PROVIDER` exposant uniquement `start(phone)` et `check(phone, code): Promise<boolean>`. Implémentation v1 : Prelude (appels HTTP via `fetch`, pas de SDK). Changer de fournisseur (Twilio Verify, Vonage…) = écrire une nouvelle implémentation de ces 2 méthodes et changer le binding dans `AuthModule`. Aucune table OTP chez nous : génération, expiration et nombre d'essais sont gérés par le fournisseur.
-- **Session opaque en DB, pas de JWT** : table `Session { id, userID, tokenHash @unique, createdAt, expiresAt }`. Token = `crypto.randomBytes(32)` renvoyé une seule fois, stocké hashé (SHA-256). Guard Nest : `Authorization: Bearer <token>` → lookup → `req.user`. Expiration longue et glissante (~90 j) pour limiter le nombre d'OTP (= coût). Révocation = delete. Passer en JWT + refresh seulement si la requête DB par appel devient un problème.
+- **Fournisseur interchangeable** : un simple objet `otp` exposant uniquement `start(phone)` et `check(phone, code): Promise<boolean>`. Implémentation v1 : Prelude (appels HTTP via `fetch`, pas de SDK). Changer de fournisseur (Twilio Verify, Vonage…) = réécrire ces 2 méthodes. Aucune table OTP chez nous : génération, expiration et nombre d'essais sont gérés par le fournisseur.
+- **Session opaque en DB, pas de JWT** : table `Session { id, userID, tokenHash @unique, createdAt, expiresAt }`. Token = `crypto.randomBytes(32)` renvoyé une seule fois, stocké hashé (SHA-256). Middleware Hono `requireAuth` : `Authorization: Bearer <token>` → hash → lookup → `c.set("user")`, 401 sinon. `userID` n'est plus jamais lu depuis le body. Côté mobile : groupes `(auth)`/`(app)` + `Stack.Protected` (Expo Router), token en `expo-secure-store`, 401 → purge du token → retour auto à `(auth)`. Expiration longue et glissante (~90 j) pour limiter le nombre d'OTP (= coût). Révocation = delete. Passer en JWT + refresh seulement si la requête DB par appel devient un problème.
 - **Modèle `User`** : `phoneVerified` à supprimer (le user n'est créé qu'après vérification). `name` nullable = flag « onboarding à faire » (`isNew`).
 - **Numéro de test** : `OTP_TEST_PHONE` + `OTP_TEST_CODE` en env, court-circuitent le fournisseur (compte démo exigé par la review Apple/Google, dev sans coût).
 - **Anti-fraude** : pays autorisés limités à la France chez le fournisseur ; cooldown de renvoi côté mobile (30-60 s) ; rate limit serveur (ex. 3 `start` / 10 min par numéro + limite par IP).
@@ -99,7 +99,7 @@ Mobile                          API                                  Fournisseur
 ## Sécurité et vie privée
 
 - Numéros E.164 puis hashés SHA-256 avant upload (protection réelle = rate limiting sur le matching, pas le hash seul).
-- Rate limiting : OTP (numéro+IP), matching contacts (anti-énumération), activation statut (anti-spam notifs). `@fastify/rate-limit` en mémoire suffit pour une instance unique.
+- Rate limiting : OTP (numéro+IP), matching contacts (anti-énumération), activation statut (anti-spam notifs). `hono-rate-limiter` en mémoire suffit pour une instance unique.
 - Permissions contacts/notifs demandées au moment pertinent avec explication préalable (review Apple).
 - Jamais d'endpoint public "ce numéro est-il inscrit ?" hors flux de matching batché/authentifié/rate-limité.
 - Token de session en `expo-secure-store` (jamais `AsyncStorage` clair), stocké hashé côté serveur.
@@ -113,9 +113,9 @@ Mobile                          API                                  Fournisseur
 
 ## Roadmap (solo, ~27-37 jours-personne)
 
-1. Setup projet (3-4j) — repo, Expo, backend Nest+Fastify+Prisma, docker-compose, CI.
-2. Auth téléphone/OTP (3-5j) — Prelude Verify derrière `OTP_PROVIDER`, session opaque + guard Nest, stockage sécurisé.
-3. Modèle de données & API cœur (4-5j) — schéma Prisma complet, modules Nest par domaine (`AuthModule`, `FriendshipModule`, `ActiveStatusModule`), endpoints amis, profil.
+1. Setup projet (3-4j) — repo, Expo, backend Hono+Prisma, docker-compose, CI.
+2. Auth téléphone/OTP (3-5j) — Prelude Verify derrière l'objet `otp`, session opaque + middleware `requireAuth`, stockage sécurisé.
+3. Modèle de données & API cœur (4-5j) — schéma Prisma complet, un router Hono par domaine (`auth`, `friendship`, `active-status`), endpoints amis, profil.
 4. Intégration contacts (3-4j) — permission, E.164, hash, upload, matching, UI suggestions.
 5. Statut actif & push (4-6j, point de friction principal) — credentials APNs/FCM via EAS, tokens, activation+fanout, endpoint amis actifs+réciprocité, expiration.
 6. UI mobile complète (4-6j) — onboarding, contacts, liste amis, activation, feed, profil, blocage.
@@ -137,7 +137,7 @@ Mobile                          API                                  Fournisseur
 
 - `apps/api/docker-compose` — env dev local (déjà en place dans `infrastructure/`)
 - `packages/db/prisma/schema.prisma` — modèle central (`User`, `Friendship`, `Block`, `ActiveStatus`, `PushToken`) — **à réécrire, actuellement un schéma générique sans rapport avec le domaine**
-- `apps/api/src/main.ts` — bootstrap Nest sur `platform-fastify` (fait)
+- `apps/api/src/main.ts` — bootstrap Hono + montage des routers, exporte `AppType` (fait)
 - `active-status` module (controller+service) — activation + réciprocité + fanout push + démarrage workflow Temporal (cœur métier, **pas encore implémenté**)
 - `push` module — intégration Expo Push API (envoi + receipts, **pas encore implémenté**)
 - `mobile/app/_layout.tsx` — racine Expo Router (**app Expo pas encore scaffoldée**)
@@ -146,7 +146,7 @@ Mobile                          API                                  Fournisseur
 ## Où on en est (scaffold actuel vs plan)
 
 - ✅ Monorepo pnpm (`apps/api`, `apps/worker`, `apps/mobile`, `packages/*`)
-- ✅ Backend NestJS + `@nestjs/platform-fastify` (migré depuis Hono)
+- ✅ Backend Hono (NestJS abandonné), routes dans `apps/api/src/routes/`
 - ✅ Prisma + PostgreSQL, worker Temporal séparé, Docker Compose local
 - ❌ Modèle de données : encore `User(email)`/`DeviceToken`/`NotificationPreference` générique — **`Friendship`, `Block`, `ActiveStatus` à créer**
 - ❌ Auth téléphone/OTP/session — inexistante, `userId` passé en clair (flow défini, voir « Auth »)
@@ -156,6 +156,6 @@ Mobile                          API                                  Fournisseur
 ## Prochaines étapes
 
 1. Réécrire `packages/db/prisma/schema.prisma` avec le vrai modèle (`User` phone, `Friendship`, `Block`, `ActiveStatus`, `PushToken`).
-2. Module User (`GET`/`PATCH /users/me`), puis Auth OTP Prelude + table `Session` + guard Nest.
+2. Module User (`GET`/`PATCH /users/me`), puis Auth OTP Prelude + table `Session` + middleware `requireAuth`.
 3. Module `ActiveStatusModule` + workflow Temporal `ActiveStatusLifecycle`.
 4. Scaffolder `apps/mobile` en Expo (Router, TanStack Query, Jotai) une fois l'auth + modèle de base en place.

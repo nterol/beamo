@@ -2,8 +2,8 @@ import { updateUserInputSchema } from "@beamo/contracts/user";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import type { WithUser } from "../auth.js";
 import { db } from "../db.js";
+import type { WithUser } from "../middleware/auth.js";
 
 export const userRoute = new Hono<{ Variables: WithUser }>()
   .get("/me", async c => {
