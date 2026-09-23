@@ -54,6 +54,7 @@ export const ModelName = {
   ActiveStatus: 'ActiveStatus',
   Friendship: 'Friendship',
   PushToken: 'PushToken',
+  Session: 'Session',
   User: 'User'
 } as const
 
@@ -110,10 +111,20 @@ export const PushTokenScalarFieldEnum = {
 export type PushTokenScalarFieldEnum = (typeof PushTokenScalarFieldEnum)[keyof typeof PushTokenScalarFieldEnum]
 
 
+export const SessionScalarFieldEnum = {
+  id: 'id',
+  userID: 'userID',
+  tokenHash: 'tokenHash',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   phone: 'phone',
-  phoneVerified: 'phoneVerified',
   name: 'name',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

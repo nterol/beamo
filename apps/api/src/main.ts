@@ -1,18 +1,20 @@
-import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { AppModule } from './app.module.js';
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
 
-async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
+import { requiredAuth } from "./auth.js";
+import { pushTokenRoute } from "./routes/push-token.js";
+import { userRoute } from "./routes/user.js";
 
-  const port = Number(process.env.PORT ?? 3000);
-  await app.listen(port, '0.0.0.0');
+const app = new Hono()
+  .get("/health", c => c.json({ status: "ok" }))
+  .use("/push-token/*", requiredAuth)
+  .use("/user/*", requiredAuth)
+  .route("/push-token", pushTokenRoute)
+  .route("/user", userRoute);
 
-  console.log(`API listening on http://localhost:${port}`);
-}
+export type AppType = typeof app;
 
-bootstrap().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const port = Number(process.env.PORT ?? 3000);
+serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () =>
+  console.info(`API listening on http://localhost:${port}`)
+);

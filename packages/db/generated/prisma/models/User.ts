@@ -27,7 +27,6 @@ export type AggregateUser = {
 export type UserMinAggregateOutputType = {
   id: string | null
   phone: string | null
-  phoneVerified: boolean | null
   name: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -36,7 +35,6 @@ export type UserMinAggregateOutputType = {
 export type UserMaxAggregateOutputType = {
   id: string | null
   phone: string | null
-  phoneVerified: boolean | null
   name: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -45,7 +43,6 @@ export type UserMaxAggregateOutputType = {
 export type UserCountAggregateOutputType = {
   id: number
   phone: number
-  phoneVerified: number
   name: number
   createdAt: number
   updatedAt: number
@@ -56,7 +53,6 @@ export type UserCountAggregateOutputType = {
 export type UserMinAggregateInputType = {
   id?: true
   phone?: true
-  phoneVerified?: true
   name?: true
   createdAt?: true
   updatedAt?: true
@@ -65,7 +61,6 @@ export type UserMinAggregateInputType = {
 export type UserMaxAggregateInputType = {
   id?: true
   phone?: true
-  phoneVerified?: true
   name?: true
   createdAt?: true
   updatedAt?: true
@@ -74,7 +69,6 @@ export type UserMaxAggregateInputType = {
 export type UserCountAggregateInputType = {
   id?: true
   phone?: true
-  phoneVerified?: true
   name?: true
   createdAt?: true
   updatedAt?: true
@@ -156,7 +150,6 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type UserGroupByOutputType = {
   id: string
   phone: string
-  phoneVerified: boolean
   name: string | null
   createdAt: Date
   updatedAt: Date
@@ -186,7 +179,6 @@ export type UserWhereInput = {
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   id?: Prisma.StringFilter<"User"> | string
   phone?: Prisma.StringFilter<"User"> | string
-  phoneVerified?: Prisma.BoolFilter<"User"> | boolean
   name?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -194,12 +186,12 @@ export type UserWhereInput = {
   activeStatus?: Prisma.XOR<Prisma.ActiveStatusNullableScalarRelationFilter, Prisma.ActiveStatusWhereInput> | null
   friendshipSent?: Prisma.FriendshipListRelationFilter
   friendshipReceived?: Prisma.FriendshipListRelationFilter
+  sessions?: Prisma.SessionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  phoneVerified?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -207,6 +199,7 @@ export type UserOrderByWithRelationInput = {
   activeStatus?: Prisma.ActiveStatusOrderByWithRelationInput
   friendshipSent?: Prisma.FriendshipOrderByRelationAggregateInput
   friendshipReceived?: Prisma.FriendshipOrderByRelationAggregateInput
+  sessions?: Prisma.SessionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -215,7 +208,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
-  phoneVerified?: Prisma.BoolFilter<"User"> | boolean
   name?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -223,12 +215,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   activeStatus?: Prisma.XOR<Prisma.ActiveStatusNullableScalarRelationFilter, Prisma.ActiveStatusWhereInput> | null
   friendshipSent?: Prisma.FriendshipListRelationFilter
   friendshipReceived?: Prisma.FriendshipListRelationFilter
+  sessions?: Prisma.SessionListRelationFilter
 }, "id" | "phone">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  phoneVerified?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -243,7 +235,6 @@ export type UserScalarWhereWithAggregatesInput = {
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   phone?: Prisma.StringWithAggregatesFilter<"User"> | string
-  phoneVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   name?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -252,7 +243,6 @@ export type UserScalarWhereWithAggregatesInput = {
 export type UserCreateInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -260,12 +250,12 @@ export type UserCreateInput = {
   activeStatus?: Prisma.ActiveStatusCreateNestedOneWithoutUserInput
   friendshipSent?: Prisma.FriendshipCreateNestedManyWithoutInitiatorInput
   friendshipReceived?: Prisma.FriendshipCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -273,12 +263,12 @@ export type UserUncheckedCreateInput = {
   activeStatus?: Prisma.ActiveStatusUncheckedCreateNestedOneWithoutUserInput
   friendshipSent?: Prisma.FriendshipUncheckedCreateNestedManyWithoutInitiatorInput
   friendshipReceived?: Prisma.FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -286,12 +276,12 @@ export type UserUpdateInput = {
   activeStatus?: Prisma.ActiveStatusUpdateOneWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUpdateManyWithoutInitiatorNestedInput
   friendshipReceived?: Prisma.FriendshipUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -299,12 +289,12 @@ export type UserUncheckedUpdateInput = {
   activeStatus?: Prisma.ActiveStatusUncheckedUpdateOneWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUncheckedUpdateManyWithoutInitiatorNestedInput
   friendshipReceived?: Prisma.FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -313,7 +303,6 @@ export type UserCreateManyInput = {
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -322,7 +311,6 @@ export type UserUpdateManyMutationInput = {
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -336,7 +324,6 @@ export type UserScalarRelationFilter = {
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  phoneVerified?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -345,7 +332,6 @@ export type UserCountOrderByAggregateInput = {
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  phoneVerified?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -354,7 +340,6 @@ export type UserMaxOrderByAggregateInput = {
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  phoneVerified?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -416,28 +401,42 @@ export type UserUpdateOneRequiredWithoutPushTokenNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPushTokenInput, Prisma.UserUpdateWithoutPushTokenInput>, Prisma.UserUncheckedUpdateWithoutPushTokenInput>
 }
 
+export type UserCreateNestedOneWithoutSessionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSessionsInput
+  upsert?: Prisma.UserUpsertWithoutSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSessionsInput, Prisma.UserUpdateWithoutSessionsInput>, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+}
+
 export type UserCreateWithoutActiveStatusInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   friendshipSent?: Prisma.FriendshipCreateNestedManyWithoutInitiatorInput
   friendshipReceived?: Prisma.FriendshipCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutActiveStatusInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   friendshipSent?: Prisma.FriendshipUncheckedCreateNestedManyWithoutInitiatorInput
   friendshipReceived?: Prisma.FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutActiveStatusInput = {
@@ -459,49 +458,49 @@ export type UserUpdateToOneWithWhereWithoutActiveStatusInput = {
 export type UserUpdateWithoutActiveStatusInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUpdateManyWithoutInitiatorNestedInput
   friendshipReceived?: Prisma.FriendshipUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActiveStatusInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUncheckedUpdateManyWithoutInitiatorNestedInput
   friendshipReceived?: Prisma.FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFriendshipSentInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   activeStatus?: Prisma.ActiveStatusCreateNestedOneWithoutUserInput
   friendshipReceived?: Prisma.FriendshipCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFriendshipSentInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   activeStatus?: Prisma.ActiveStatusUncheckedCreateNestedOneWithoutUserInput
   friendshipReceived?: Prisma.FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFriendshipSentInput = {
@@ -512,25 +511,25 @@ export type UserCreateOrConnectWithoutFriendshipSentInput = {
 export type UserCreateWithoutFriendshipReceivedInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: Prisma.PushTokenCreateNestedManyWithoutUserInput
   activeStatus?: Prisma.ActiveStatusCreateNestedOneWithoutUserInput
   friendshipSent?: Prisma.FriendshipCreateNestedManyWithoutInitiatorInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFriendshipReceivedInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
   activeStatus?: Prisma.ActiveStatusUncheckedCreateNestedOneWithoutUserInput
   friendshipSent?: Prisma.FriendshipUncheckedCreateNestedManyWithoutInitiatorInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFriendshipReceivedInput = {
@@ -552,25 +551,25 @@ export type UserUpdateToOneWithWhereWithoutFriendshipSentInput = {
 export type UserUpdateWithoutFriendshipSentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   activeStatus?: Prisma.ActiveStatusUpdateOneWithoutUserNestedInput
   friendshipReceived?: Prisma.FriendshipUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFriendshipSentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   activeStatus?: Prisma.ActiveStatusUncheckedUpdateOneWithoutUserNestedInput
   friendshipReceived?: Prisma.FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutFriendshipReceivedInput = {
@@ -587,49 +586,49 @@ export type UserUpdateToOneWithWhereWithoutFriendshipReceivedInput = {
 export type UserUpdateWithoutFriendshipReceivedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
   activeStatus?: Prisma.ActiveStatusUpdateOneWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUpdateManyWithoutInitiatorNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFriendshipReceivedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   activeStatus?: Prisma.ActiveStatusUncheckedUpdateOneWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUncheckedUpdateManyWithoutInitiatorNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPushTokenInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   activeStatus?: Prisma.ActiveStatusCreateNestedOneWithoutUserInput
   friendshipSent?: Prisma.FriendshipCreateNestedManyWithoutInitiatorInput
   friendshipReceived?: Prisma.FriendshipCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPushTokenInput = {
   id?: string
   phone: string
-  phoneVerified?: boolean
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   activeStatus?: Prisma.ActiveStatusUncheckedCreateNestedOneWithoutUserInput
   friendshipSent?: Prisma.FriendshipUncheckedCreateNestedManyWithoutInitiatorInput
   friendshipReceived?: Prisma.FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPushTokenInput = {
@@ -651,22 +650,86 @@ export type UserUpdateToOneWithWhereWithoutPushTokenInput = {
 export type UserUpdateWithoutPushTokenInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   activeStatus?: Prisma.ActiveStatusUpdateOneWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUpdateManyWithoutInitiatorNestedInput
   friendshipReceived?: Prisma.FriendshipUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPushTokenInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activeStatus?: Prisma.ActiveStatusUncheckedUpdateOneWithoutUserNestedInput
+  friendshipSent?: Prisma.FriendshipUncheckedUpdateManyWithoutInitiatorNestedInput
+  friendshipReceived?: Prisma.FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutSessionsInput = {
+  id?: string
+  phone: string
+  name?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: Prisma.PushTokenCreateNestedManyWithoutUserInput
+  activeStatus?: Prisma.ActiveStatusCreateNestedOneWithoutUserInput
+  friendshipSent?: Prisma.FriendshipCreateNestedManyWithoutInitiatorInput
+  friendshipReceived?: Prisma.FriendshipCreateNestedManyWithoutReceiverInput
+}
+
+export type UserUncheckedCreateWithoutSessionsInput = {
+  id?: string
+  phone: string
+  name?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: Prisma.PushTokenUncheckedCreateNestedManyWithoutUserInput
+  activeStatus?: Prisma.ActiveStatusUncheckedCreateNestedOneWithoutUserInput
+  friendshipSent?: Prisma.FriendshipUncheckedCreateNestedManyWithoutInitiatorInput
+  friendshipReceived?: Prisma.FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+}
+
+export type UserCreateOrConnectWithoutSessionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+}
+
+export type UserUpsertWithoutSessionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSessionsInput, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSessionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSessionsInput, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+}
+
+export type UserUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.PushTokenUpdateManyWithoutUserNestedInput
+  activeStatus?: Prisma.ActiveStatusUpdateOneWithoutUserNestedInput
+  friendshipSent?: Prisma.FriendshipUpdateManyWithoutInitiatorNestedInput
+  friendshipReceived?: Prisma.FriendshipUpdateManyWithoutReceiverNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.PushTokenUncheckedUpdateManyWithoutUserNestedInput
   activeStatus?: Prisma.ActiveStatusUncheckedUpdateOneWithoutUserNestedInput
   friendshipSent?: Prisma.FriendshipUncheckedUpdateManyWithoutInitiatorNestedInput
   friendshipReceived?: Prisma.FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
@@ -681,12 +744,14 @@ export type UserCountOutputType = {
   pushToken: number
   friendshipSent: number
   friendshipReceived: number
+  sessions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   pushToken?: boolean | UserCountOutputTypeCountPushTokenArgs
   friendshipSent?: boolean | UserCountOutputTypeCountFriendshipSentArgs
   friendshipReceived?: boolean | UserCountOutputTypeCountFriendshipReceivedArgs
+  sessions?: boolean | UserCountOutputTypeCountSessionsArgs
 }
 
 /**
@@ -720,11 +785,17 @@ export type UserCountOutputTypeCountFriendshipReceivedArgs<ExtArgs extends runti
   where?: Prisma.FriendshipWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SessionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   phone?: boolean
-  phoneVerified?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -732,13 +803,13 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   activeStatus?: boolean | Prisma.User$activeStatusArgs<ExtArgs>
   friendshipSent?: boolean | Prisma.User$friendshipSentArgs<ExtArgs>
   friendshipReceived?: boolean | Prisma.User$friendshipReceivedArgs<ExtArgs>
+  sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   phone?: boolean
-  phoneVerified?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -747,7 +818,6 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   phone?: boolean
-  phoneVerified?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -756,18 +826,18 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type UserSelectScalar = {
   id?: boolean
   phone?: boolean
-  phoneVerified?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "phoneVerified" | "name" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "name" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   pushToken?: boolean | Prisma.User$pushTokenArgs<ExtArgs>
   activeStatus?: boolean | Prisma.User$activeStatusArgs<ExtArgs>
   friendshipSent?: boolean | Prisma.User$friendshipSentArgs<ExtArgs>
   friendshipReceived?: boolean | Prisma.User$friendshipReceivedArgs<ExtArgs>
+  sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -780,11 +850,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     activeStatus: Prisma.$ActiveStatusPayload<ExtArgs> | null
     friendshipSent: Prisma.$FriendshipPayload<ExtArgs>[]
     friendshipReceived: Prisma.$FriendshipPayload<ExtArgs>[]
+    sessions: Prisma.$SessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     phone: string
-    phoneVerified: boolean
     name: string | null
     createdAt: Date
     updatedAt: Date
@@ -1186,6 +1256,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   activeStatus<T extends Prisma.User$activeStatusArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$activeStatusArgs<ExtArgs>>): Prisma.Prisma__ActiveStatusClient<runtime.Types.Result.GetResult<Prisma.$ActiveStatusPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   friendshipSent<T extends Prisma.User$friendshipSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$friendshipSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   friendshipReceived<T extends Prisma.User$friendshipReceivedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$friendshipReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1217,7 +1288,6 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
-  readonly phoneVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly name: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -1702,6 +1772,30 @@ export type User$friendshipReceivedArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.FriendshipScalarFieldEnum | Prisma.FriendshipScalarFieldEnum[]
+}
+
+/**
+ * User.sessions
+ */
+export type User$sessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Session
+   */
+  select?: Prisma.SessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Session
+   */
+  omit?: Prisma.SessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SessionInclude<ExtArgs> | null
+  where?: Prisma.SessionWhereInput
+  orderBy?: Prisma.SessionOrderByWithRelationInput | Prisma.SessionOrderByWithRelationInput[]
+  cursor?: Prisma.SessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SessionScalarFieldEnum | Prisma.SessionScalarFieldEnum[]
 }
 
 /**

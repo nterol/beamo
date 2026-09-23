@@ -15,7 +15,7 @@ App mobile où un utilisateur se déclare "actif" (dispo pour une sortie), ce qu
 | Mobile | Expo managed, iOS + Android |
 | Source des amis | Sync contacts (numéro hashé) + demande/acceptation in-app |
 | Temps réel | Aucun — polling client + push comme vrai signal |
-| Auth | Téléphone + OTP SMS (Twilio Verify) |
+| Auth | Téléphone + OTP SMS (Prelude Verify, fournisseur interchangeable) + session opaque en DB |
 | Hébergement | Railway, déploiement Docker |
 | Dev local | Docker Compose (API + Postgres) |
 | State client | TanStack Query (server state) + Jotai (state léger) |
@@ -31,7 +31,7 @@ App mobile où un utilisateur se déclare "actif" (dispo pour une sortie), ce qu
 - **Mobile Expo** : consomme l'API REST, auth en secure storage, reçoit les push, polling léger.
 - **API NestJS** : seul accès DB, toute la logique sensible (réciprocité, expiration, blocage) y vit.
 - **PostgreSQL managé** : source de vérité unique, pas de Redis/broker nécessaire au stade MVP.
-- **Tiers** : Expo Push Notification Service (relai APNs/FCM) + Twilio Verify (OTP).
+- **Tiers** : Expo Push Notification Service (relai APNs/FCM) + Prelude Verify (OTP).
 
 Aucun serveur temps réel à opérer (pas de websocket) — simplifie la maintenance solo.
 
@@ -40,7 +40,7 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 - **NestJS + `@nestjs/platform-fastify`** : choix assumé pour la valeur CV malgré le surcoût de boilerplate vs Fastify brut ; garde perf/plomberie Fastify sous la structure Nest (modules/DI/guards/pipes `class-validator`).
 - **Prisma** plutôt que Drizzle : migrations zéro-friction, Prisma Studio, pas de souci de cold-start serverless (process persistant).
 - **Expo Push Notification Service** : token → backend → API Expo Push (lots de 100) → APNs/FCM. Piège : traiter les *receipts* pour purger les tokens `DeviceNotRegistered`, sinon échecs silencieux. Push non testables sur simulateur iOS / Expo Go limité sur Android récent → dev client EAS sur device physique dès les tests push.
-- **Twilio Verify** pour l'OTP plutôt que fait maison : ~0,05-0,07 USD/vérif, à protéger impérativement par rate limiting (risque SMS pumping).
+- **Prelude Verify** pour l'OTP plutôt que fait maison ou Twilio : ≈0,06 €/vérif en France (0,032 € + SMS au coût opérateur) contre ≈0,13 $ chez Twilio Verify (0,05 $ + 0,0798 $/SMS FR, tarifs relevés en sept. 2026). À <1 000 inscriptions/an l'écart est négligeable ; choix fait sur la DX, la localisation UE (RGPD) et l'anti-fraude de base incluse. Le fournisseur reste interchangeable (voir « Auth »). À protéger impérativement par rate limiting (risque SMS pumping).
 - **Railway** (Docker natif, Postgres managé un clic) — Render écarté (UI jugée peu intuitive), Fly.io/Coolify écartés (sur/sous-dimensionnés).
 - **Temporal (Temporal Cloud)** pour le cycle de vie du statut actif, plutôt qu'un `node-cron` : un vrai effet de bord déclenché (notifs pré/à expiration) a besoin d'un timer durable qui survit aux redémarrages. Un worker process dédié reste à opérer en continu (service Railway séparé de l'API) — c'est le vrai coût ajouté. En local : `temporal server start-dev` (CLI seule, pas de conteneurisation nécessaire).
 - **Expo Router** (routing fichiers, deep linking pour invitations).
@@ -62,7 +62,7 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 
 ## Flux clés
 
-1. **Onboarding** : téléphone → OTP Twilio → JWT access+refresh (`expo-secure-store`) → écran d'explication avant permission contacts → lecture contacts, normalisation E.164, hash client, upload batch → matching serveur → suggestions (jamais d'ajout auto).
+1. **Onboarding** : téléphone → OTP (voir « Auth ») → token de session (`expo-secure-store`) → si `isNew`, écran prénom (`PATCH /users/me`) → écran d'explication avant permission contacts → lecture contacts, normalisation E.164, hash client, upload batch → matching serveur → suggestions (jamais d'ajout auto).
 2. **Ajout d'ami** : suggestions matching ou recherche in-app, flux demande/acceptation. Invitation non-inscrit via partage natif du lien (pas de SMS backend).
 3. **Passage actif** : catégorie+message → upsert `ActiveStatus` (un seul actif à la fois), `expires_at`=+3h → fanout push amis acceptés non-bloqués (sync fire-and-forget) → start workflow `ActiveStatusLifecycle` (workflowId déterministe).
 4. **Consultation amis actifs** : polling TanStack Query (~30-60s + refetch foreground) + pull-to-refresh, réciprocité serveur.
@@ -70,13 +70,39 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 6. **Expiration auto** : notif T-5min, puis notif expiration + finalisation à T+3h, piloté par Temporal ; lectures toujours correctes via `expires_at`.
 7. **Blocage** : entrée `Block`, retrait silencieux bidirectionnel, exclu des fanouts/listes, sans notifier le bloqué.
 
+## Auth (v1 : OTP SMS uniquement, email en v2)
+
+**Sign up = login** : un seul flow, le numéro E.164 est l'identité. Pas d'endpoint `register`.
+
+```
+Mobile                          API                                  Fournisseur OTP
+  │── POST /auth/otp/start ─────▶│ rate limit (numéro + IP)            │
+  │   { phone }                  │── otp.start(phone) ────────────────▶│ envoie le SMS
+  │◀──────── 204 ────────────────│ toujours 204 (pas d'énumération)    │
+  │── POST /auth/otp/verify ────▶│── otp.check(phone, code) ──────────▶│
+  │   { phone, code }            │◀── approved / rejected ─────────────│
+  │                              │ upsert User by phone                │
+  │                              │ crée Session                        │
+  │◀─ { token, user, isNew } ────│                                     │
+  │ isNew → écran prénom → PATCH /users/me { name }
+  │── DELETE /auth/session ─────▶│ logout = suppression de la Session
+```
+
+- **Fournisseur interchangeable** : un provider Nest `OTP_PROVIDER` exposant uniquement `start(phone)` et `check(phone, code): Promise<boolean>`. Implémentation v1 : Prelude (appels HTTP via `fetch`, pas de SDK). Changer de fournisseur (Twilio Verify, Vonage…) = écrire une nouvelle implémentation de ces 2 méthodes et changer le binding dans `AuthModule`. Aucune table OTP chez nous : génération, expiration et nombre d'essais sont gérés par le fournisseur.
+- **Session opaque en DB, pas de JWT** : table `Session { id, userID, tokenHash @unique, createdAt, expiresAt }`. Token = `crypto.randomBytes(32)` renvoyé une seule fois, stocké hashé (SHA-256). Guard Nest : `Authorization: Bearer <token>` → lookup → `req.user`. Expiration longue et glissante (~90 j) pour limiter le nombre d'OTP (= coût). Révocation = delete. Passer en JWT + refresh seulement si la requête DB par appel devient un problème.
+- **Modèle `User`** : `phoneVerified` à supprimer (le user n'est créé qu'après vérification). `name` nullable = flag « onboarding à faire » (`isNew`).
+- **Numéro de test** : `OTP_TEST_PHONE` + `OTP_TEST_CODE` en env, court-circuitent le fournisseur (compte démo exigé par la review Apple/Google, dev sans coût).
+- **Anti-fraude** : pays autorisés limités à la France chez le fournisseur ; cooldown de renvoi côté mobile (30-60 s) ; rate limit serveur (ex. 3 `start` / 10 min par numéro + limite par IP).
+- **Reporté v2** : email, changement de numéro, recyclage de numéros par les opérateurs, liste des sessions côté user.
+
+
 ## Sécurité et vie privée
 
 - Numéros E.164 puis hashés SHA-256 avant upload (protection réelle = rate limiting sur le matching, pas le hash seul).
 - Rate limiting : OTP (numéro+IP), matching contacts (anti-énumération), activation statut (anti-spam notifs). `@fastify/rate-limit` en mémoire suffit pour une instance unique.
 - Permissions contacts/notifs demandées au moment pertinent avec explication préalable (review Apple).
 - Jamais d'endpoint public "ce numéro est-il inscrit ?" hors flux de matching batché/authentifié/rate-limité.
-- JWT access court + refresh en `expo-secure-store` (jamais `AsyncStorage` clair).
+- Token de session en `expo-secure-store` (jamais `AsyncStorage` clair), stocké hashé côté serveur.
 - Endpoint de suppression complète de compte (RGPD).
 
 ## Déploiement
@@ -88,7 +114,7 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 ## Roadmap (solo, ~27-37 jours-personne)
 
 1. Setup projet (3-4j) — repo, Expo, backend Nest+Fastify+Prisma, docker-compose, CI.
-2. Auth téléphone/OTP (3-5j) — Twilio Verify, JWT + guards Nest, stockage sécurisé.
+2. Auth téléphone/OTP (3-5j) — Prelude Verify derrière `OTP_PROVIDER`, session opaque + guard Nest, stockage sécurisé.
 3. Modèle de données & API cœur (4-5j) — schéma Prisma complet, modules Nest par domaine (`AuthModule`, `FriendshipModule`, `ActiveStatusModule`), endpoints amis, profil.
 4. Intégration contacts (3-4j) — permission, E.164, hash, upload, matching, UI suggestions.
 5. Statut actif & push (4-6j, point de friction principal) — credentials APNs/FCM via EAS, tokens, activation+fanout, endpoint amis actifs+réciprocité, expiration.
@@ -103,7 +129,7 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 - Config APNs/FCM : privilégier credentials managés EAS, format FCM V1 (server key legacy dépréciée).
 - Push non testables sur simulateur iOS ; dev client EAS device physique requis tôt.
 - Purger les tokens push invalides via les receipts Expo.
-- Coût variable principal = OTP Twilio (push Expo gratuits) → rate limiting impératif.
+- Coût variable principal = OTP SMS (push Expo gratuits) → rate limiting impératif.
 - E.164 rigoureux côté client sinon faux négatifs de matching.
 - Ne jamais faire confiance à une durée envoyée par le client — 3h = constante serveur.
 
@@ -123,13 +149,13 @@ Aucun serveur temps réel à opérer (pas de websocket) — simplifie la mainten
 - ✅ Backend NestJS + `@nestjs/platform-fastify` (migré depuis Hono)
 - ✅ Prisma + PostgreSQL, worker Temporal séparé, Docker Compose local
 - ❌ Modèle de données : encore `User(email)`/`DeviceToken`/`NotificationPreference` générique — **`Friendship`, `Block`, `ActiveStatus` à créer**
-- ❌ Auth téléphone/OTP/JWT — inexistante, `userId` passé en clair
+- ❌ Auth téléphone/OTP/session — inexistante, `userId` passé en clair (flow défini, voir « Auth »)
 - ❌ Workflow `ActiveStatusLifecycle` — le worker n'a qu'un `onboardingWorkflow` générique (rappel 48h)
 - ❌ App mobile Expo — `apps/mobile` est un placeholder vide
 
 ## Prochaines étapes
 
 1. Réécrire `packages/db/prisma/schema.prisma` avec le vrai modèle (`User` phone, `Friendship`, `Block`, `ActiveStatus`, `PushToken`).
-2. Auth téléphone/OTP Twilio + guards JWT Nest.
+2. Module User (`GET`/`PATCH /users/me`), puis Auth OTP Prelude + table `Session` + guard Nest.
 3. Module `ActiveStatusModule` + workflow Temporal `ActiveStatusLifecycle`.
 4. Scaffolder `apps/mobile` en Expo (Router, TanStack Query, Jotai) une fois l'auth + modèle de base en place.

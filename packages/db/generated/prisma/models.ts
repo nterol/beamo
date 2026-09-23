@@ -11,5 +11,6 @@
 export type * from './models/ActiveStatus.ts'
 export type * from './models/Friendship.ts'
 export type * from './models/PushToken.ts'
+export type * from './models/Session.ts'
 export type * from './models/User.ts'
 export type * from './commonInputTypes.ts'

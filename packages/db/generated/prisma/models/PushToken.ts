@@ -214,17 +214,17 @@ export type PushTokenOrderByWithRelationInput = {
 
 export type PushTokenWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  token?: string
   AND?: Prisma.PushTokenWhereInput | Prisma.PushTokenWhereInput[]
   OR?: Prisma.PushTokenWhereInput[]
   NOT?: Prisma.PushTokenWhereInput | Prisma.PushTokenWhereInput[]
   userID?: Prisma.StringFilter<"PushToken"> | string
-  token?: Prisma.StringFilter<"PushToken"> | string
   platform?: Prisma.EnumDevicePlatformFilter<"PushToken"> | $Enums.DevicePlatform
   isActive?: Prisma.BoolFilter<"PushToken"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PushToken"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PushToken"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id">
+}, "id" | "token">
 
 export type PushTokenOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

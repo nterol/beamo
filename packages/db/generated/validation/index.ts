@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Prisma } from '../prisma/client';
+import type { Prisma } from '../prisma/client.js';
 
 /////////////////////////////////////////
 // HELPER FUNCTIONS
@@ -18,7 +18,9 @@ export const FriendshipScalarFieldEnumSchema = z.enum(['id','initiatorID','recei
 
 export const PushTokenScalarFieldEnumSchema = z.enum(['id','userID','token','platform','isActive','createdAt','updatedAt']);
 
-export const UserScalarFieldEnumSchema = z.enum(['id','phone','phoneVerified','name','createdAt','updatedAt']);
+export const SessionScalarFieldEnumSchema = z.enum(['id','userID','tokenHash','createdAt','expiresAt']);
+
+export const UserScalarFieldEnumSchema = z.enum(['id','phone','name','createdAt','updatedAt']);
 
 export const SortOrderSchema = z.enum(['asc','desc']);
 
@@ -89,13 +91,26 @@ export const PushTokenSchema = z.object({
 export type PushToken = z.infer<typeof PushTokenSchema>
 
 /////////////////////////////////////////
+// SESSION SCHEMA
+/////////////////////////////////////////
+
+export const SessionSchema = z.object({
+  id: z.string().uuid(),
+  userID: z.string(),
+  tokenHash: z.string(),
+  createdAt: z.coerce.date(),
+  expiresAt: z.coerce.date(),
+})
+
+export type Session = z.infer<typeof SessionSchema>
+
+/////////////////////////////////////////
 // USER SCHEMA
 /////////////////////////////////////////
 
 export const UserSchema = z.object({
   id: z.string().uuid(),
   phone: z.string(),
-  phoneVerified: z.boolean(),
   name: z.string().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

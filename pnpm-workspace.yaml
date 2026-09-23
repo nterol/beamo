@@ -1,3 +1,5 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - apps/*
+  - packages/*
+patchedDependencies:
+  zod-prisma-types@3.3.11: patches/zod-prisma-types@3.3.11.patch

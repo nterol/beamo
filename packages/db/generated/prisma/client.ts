@@ -57,6 +57,11 @@ export type Friendship = Prisma.FriendshipModel
  */
 export type PushToken = Prisma.PushTokenModel
 /**
+ * Model Session
+ * 
+ */
+export type Session = Prisma.SessionModel
+/**
  * Model User
  * 
  */
