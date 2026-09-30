@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type { User } from "@beamo/db/validation";
 import { createMiddleware } from "hono/factory";
 
-import { db } from "./db.js";
+import { db } from "../db.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 export const SESSION_TTL = 90 * DAY;

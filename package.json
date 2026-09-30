@@ -2,7 +2,7 @@
   "name": "beamo",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@12.8.1",
   "scripts": {
     "dev": "pnpm -r --parallel --filter @beamo/api --filter @beamo/worker dev",
     "dev:infra": "docker compose -f infrastructure/docker-compose.yml up -d",

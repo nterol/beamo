@@ -15,6 +15,7 @@
     "@beamo/db": "workspace:*",
     "@hono/node-server": "^2.1.1",
     "@hono/zod-validator": "^0.9.1",
+    "@prelude.so/sdk": "^0.13.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@temporalio/client": "^1.11.7",
     "hono": "^4.13.8",
