@@ -2,11 +2,13 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
 import { requiredAuth } from "./middleware/auth.js";
+import { authRoute } from "./routes/auth.js";
 import { pushTokenRoute } from "./routes/push-token.js";
 import { userRoute } from "./routes/user.js";
 
 const app = new Hono()
   .get("/health", c => c.json({ status: "ok" }))
+  .route("/auth/*", authRoute)
   .use("/push-token/*", requiredAuth)
   .use("/user/*", requiredAuth)
   .route("/push-token", pushTokenRoute)
