@@ -8,7 +8,8 @@ import { userRoute } from "./routes/user.js";
 
 const app = new Hono()
   .get("/health", c => c.json({ status: "ok" }))
-  .route("/auth/*", authRoute)
+  .use("/auth/session", requiredAuth)
+  .route("/auth/", authRoute)
   .use("/push-token/*", requiredAuth)
   .use("/user/*", requiredAuth)
   .route("/push-token", pushTokenRoute)

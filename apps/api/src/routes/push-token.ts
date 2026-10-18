@@ -6,10 +6,10 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { db } from "../db.js";
-import type { WithUser } from "../middleware/auth.js";
+import type { AuthMiddleWareCTX } from "../middleware/auth.js";
 
 export const pushTokenRoute = new Hono<{
-  Variables: WithUser;
+  Variables: AuthMiddleWareCTX;
 }>()
   .post("/", zValidator("json", registerPushTokenSchema), async ctx => {
     const { token, platform } = ctx.req.valid("json");

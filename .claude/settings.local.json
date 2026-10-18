@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls *)",
+      "Bash(rtk read *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk lint *)",
+      "Bash(rtk git *)",
+      "Bash(pnpm exec *)",
+      "Bash(sed -i 's#\"tsx watch src/main.ts\"#\"tsx --env-file=../../.env watch src/main.ts\"#' apps/api/package.json)",
+      "Bash(sed -i 's#\"tsx watch src/index.ts\"#\"tsx --env-file=../../.env watch src/index.ts\"#' apps/worker/package.json)",
+      "Bash(sed -i 's#^import \"dotenv/config\";#import { config } from \"dotenv\";#' packages/db/prisma.config.ts)",
+      "Bash(sed -i '/^import { defineConfig/a  config\\({ path: \"../../.env\", quiet: true }\\);' packages/db/prisma.config.ts)",
+      "Bash(rm packages/db/.env)",
+      "Read(//Users/nterol/packages/**)",
+      "Bash(pnpm prisma *)",
+      "WebFetch(domain:biomejs.dev)",
+      "Bash(rtk find *)",
+      "Bash(rtk bun *)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(sed -n '125,142p' ~/.zshrc)",
+      "Bash(/Users/nterol/.bun/bin/bun run *)",
+      "Bash(zsh -c 'which bun && bun --version')",
+      "Bash(zsh -c 'bun run $HOME/.claude/hooks/index.ts')",
+      "Bash(sh -c 'which bun')",
+      "Bash(echo \"sh exit:$?\")",
+      "Bash(bash -c 'which bun')",
+      "Bash(echo \"bash exit:$?\")",
+      "Bash(zsh -c 'which bun')",
+      "Bash(echo \"zsh exit:$?\")",
+      "Bash(/bin/zsh -c 'echo PATH check:; which bun; echo ---hook---; bun run $HOME/.claude/hooks/index.ts')",
+      "Bash(ps -Ao comm)",
+      "Bash(time zsh -i -c exit)",
+      "Bash(zsh -i -c 'zmodload zsh/zprof; source ~/.zshrc; zprof | head -15')",
+      "Bash(/bin/zsh -c 'bun run $HOME/.claude/hooks/index.ts')",
+      "WebFetch(domain:www.twilio.com)",
+      "WebSearch",
+      "WebFetch(domain:prelude.so)"
+    ]
+  }
+}
