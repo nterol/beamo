@@ -6,12 +6,12 @@ Un utilisateur lance un **beam** : il se déclare dispo (catégorie + note libre
 
 Règle centrale, à la BeReal : **on ne voit l'activité de ses amis que si l'on est actif soi-même**. Sinon, l'écran est flouté. La règle est appliquée côté serveur : un client inactif ne reçoit que des compteurs, jamais les identités, pour que le flou ne puisse pas être contourné.
 
-L'écran principal montre uniquement les amis, en couleur quand ils sont actifs.
+L'écran principal montre uniquement les amis, en couleur quand ils sont actifs. Inactif, on ne reçoit que le nombre d'amis actifs (de quoi afficher un écran flouté).
 
 ## Beam
 
 - Catégories : `movie`, `drink`, `coffee`, `outdoor`, `sport`, `other`, plus une note libre optionnelle.
-- Durée fixe, constante serveur modifiable sans mise à jour de l'app : 2 h pressenti, 3 h possible.
+- Durée fixe, constante serveur (`:beam_duration_minutes`, 120 aujourd'hui) modifiable sans mise à jour de l'app.
 - Notification à T-5 min, puis expiration.
 - Un seul beam actif à la fois par utilisateur.
 
@@ -24,21 +24,37 @@ L'écran principal montre uniquement les amis, en couleur quand ils sont actifs.
 
 - Position mise à jour à chaque ouverture de l'app (permission « pendant l'utilisation »).
 - Stockée arrondie à ~550 m, horodatée. Une position de plus de 7 jours est ignorée.
-- Chacun règle un rayon : 10 km par défaut, ou pas de rayon.
-- Un ami est notifié si la distance est sous **les deux** rayons, celui de l'émetteur et celui du destinataire.
-- Si personne n'est dans le rayon, élargissement automatique par paliers (10 → 25 → 50 km → sans limite, à confirmer).
+- Un beam exige une position récente : l'app l'envoie avec le beam.
+- Chacun choisit un mode de rayon :
+  - **auto** (défaut) : comme émetteur, 10 km, élargi à 25, 50 km puis sans limite tant que personne n'est atteint ; comme destinataire, on accepte ce que l'élargissement atteint.
+  - **fixe** (N km) : limite stricte dans les deux rôles, sans élargissement.
+  - **illimité**.
+- Un ami est notifié seulement s'il est dans la portée de l'émetteur **et** dans son propre rayon.
 
-## Répondre à un beam
+## Répondre à un beam : les feux de Gondor
 
 - Ouvrir la notification **n'est pas** un beam implicite. Elle ouvre le beam de l'ami avec un bouton « J'en suis ».
 - L'ouverture est enregistrée comme « vu » : l'émetteur voit « 3 amis ont vu ton beam ».
-- Répondre crée un beam lié au beam d'origine. Il notifie l'émetteur d'origine **et** les amis du répondant : c'est la **cascade**.
-- La cascade fait se croiser des gens qui ne se connaissent pas, d'où le besoin d'**espaces de communauté** (à cadrer).
+- Répondre, c'est lancer **son propre beam**, lié à celui reçu. Seul un destinataire peut répondre.
+- Exemple : Tom lance un beam. Léa le reçoit et répond.
+  - Tom reçoit « Léa a répondu à ton beam ».
+  - Les amis de Léa reçoivent « Léa est dispo ».
+  - Max, ami de Léa mais pas de Tom, voit Léa, jamais Tom.
+  - Si Max répond, ce sont les amis de Max qui sont prévenus, et ainsi de suite.
+- La chaîne se propage de proche en proche, sans limite de profondeur. Chacun ne voit jamais que ses propres amis : il n'y a pas de logique de « cascade » à part.
+
+## Communautés (à construire)
+
+- Un utilisateur qui connaît plusieurs personnes peut créer une communauté avec elles. Exemple : Léa réunit Tom et Max.
+- Les membres d'une communauté se voient mutuellement, comme des amis, même s'ils ne le sont pas.
+- Sans communauté, les cercles restent séparés.
+- Dans le code, la visibilité passe par `Social.circle_ids/1` (aujourd'hui, les amis seulement) : les communautés s'y brancheront.
 
 ## Anti-spam et heures silencieuses
 
-- Côté émetteur : délai minimum entre deux beams.
-- Côté destinataire : plafond de notifications par heure, une seule notification par ami et par heure, possibilité de couper un ami.
+- Côté émetteur : 6 beams par heure au maximum.
+- Côté destinataire : 5 notifications de beam par heure au maximum, une seule par ami et par heure, possibilité de couper un ami (sourdine).
+- Les beams non notifiés restent enregistrés et visibles dans l'app.
 - Heures silencieuses (début, fin, fuseau horaire) : pas de push, mais le beam reste visible dans l'app.
 
 ## Modération v1

@@ -6,38 +6,35 @@ Dernière mise à jour : 2026-11-09, branche `feat/phoenix-backend`.
 
 - [x] Projet Phoenix dans `server/`, Postgres 17 en local sur le port 5434, versions fixées par mise
 - [x] Auth OTP (Prelude, faux fournisseur en dev/test, numéro de démo), sessions glissantes, déconnexion
-- [x] Profil et réglages : nom, rayon, heures silencieuses, fuseau, suppression de compte
+- [x] Profil et réglages : nom, mode de rayon, heures silencieuses, fuseau, suppression de compte
 - [x] Position arrondie (`PUT /me/location`)
 - [x] Amitiés : demande, acceptation, demande croisée, refus/annulation, suppression
-- [x] Blocages
+- [x] Blocages, sourdines
 - [x] Matching de contacts par hash
 - [x] Tokens push + envoi Expo via Oban + purge des tokens morts (tickets et receipts)
-- [x] Rate limiting : OTP, contacts, demandes d'ami
-- [x] 32 tests ExUnit au vert
-- [x] Ancien back-end TypeScript (Hono, worker Temporal, packages partagés) supprimé
+- [x] **Beams** : création et arrêt, durée côté serveur, diffusion géolocalisée avec portée auto par paliers, réponses en chaîne, « vu », rappel T-5 min, fil flouté tant qu'on est inactif
+- [x] Anti-spam : 6 beams/h en émission ; en réception, heures silencieuses, sourdine, 1 push par émetteur et par heure, 5 pushes/h
+- [x] Rate limiting : OTP, contacts, demandes d'ami, beams
+- [x] 55 tests ExUnit au vert
 
 ## À faire, dans l'ordre
 
-1. **Beams**
-   - Table `beams` : `user_id`, `category`, `note`, `expires_at`, `parent_beam_id` pour les réponses, `audience`, `radius_km` effectif.
-   - Table des destinataires et des « vus ».
-   - Création, désactivation, jobs Oban de rappel (T-5 min) et d'expiration.
-   - Fan-out géolocalisé (rayons croisés, positions de moins de 7 jours, élargissement par paliers).
-   - Réciprocité : la liste des amis actifs n'est accessible qu'à un utilisateur actif ; sinon, un compteur seulement.
-   - Réponse et cascade.
-2. **Anti-spam** : délai entre deux beams, plafond de notifications par destinataire, couper un ami, heures silencieuses appliquées au fan-out.
-3. **Temps réel** : socket authentifié par token, Channel utilisateur, Presence.
-4. **Contrat mobile** : spec OpenAPI (`open_api_spex`) + client TypeScript généré.
-5. **Communautés** : en attente de cadrage.
-6. **App mobile** : en attente des maquettes Figma ; aujourd'hui, `apps/mobile` contient encore le template Expo.
-7. **Déploiement** : Dockerfile de release, CI GitHub Actions, choix de l'hébergeur, en-tête d'IP du proxy pour le rate limiting.
+1. **Communautés** (règle actée dans [product.md](product.md), détails en attente) : tables, invitations, branchement dans `Social.circle_ids/1`.
+2. **Temps réel** : socket authentifié par token, Channel utilisateur, événements « ami actif / inactif », Presence.
+3. **Contrat mobile** : spec OpenAPI (`open_api_spex`) + client TypeScript généré.
+4. **Déploiement** : Dockerfile de release, CI GitHub Actions, choix de l'hébergeur, en-tête d'IP du proxy pour le rate limiting.
+5. **App mobile** : en attente des maquettes Figma ; aujourd'hui, `apps/mobile` contient encore le template Expo.
+6. Plus tard : amis d'amis (double tap), inconnus (triple tap, PostGIS).
 
 ## Questions ouvertes (pour le porteur)
 
-- Cascade : que voit un ami du répondant qui ne connaît pas l'émetteur d'origine ? Quelle profondeur maximale ? L'émetteur peut-il l'interdire ?
-- Communautés : groupe créé par un utilisateur pour réunir des amis, ou espace éphémère né d'une cascade ?
-- Amis proches : liste distincte, ou simple communauté ?
-- Paliers d'élargissement du rayon, durée exacte du beam (2 h ou 3 h), seuils anti-spam.
+- Communautés :
+  - faut-il être ami avec tous les membres pour les ajouter ?
+  - les invités doivent-ils accepter ?
+  - un membre peut-il en ajouter d'autres, ou quitter ?
+  - les membres reçoivent-ils les notifications de beam les uns des autres, ou se voient-ils seulement dans le fil ?
+- L'émetteur d'origine doit-il recevoir, en plus de « X a répondu », les beams de ses amis qui répondent ? Aujourd'hui : uniquement « X a répondu ».
+- Durée du beam (2 h aujourd'hui), paliers de portée (10/25/50/illimité), seuils anti-spam : à ajuster avec l'usage.
 
 ## Points d'attention
 

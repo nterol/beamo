@@ -2,14 +2,29 @@
 
 Journal antichronologique. Chaque entrée : décision, raison, alternatives écartées.
 
+## 2026-11-09 — Trois modes de rayon
+Avec un rayon de 10 km par défaut des deux côtés et la règle « les deux rayons », l'élargissement automatique n'atteignait jamais personne. D'où trois modes :
+- `auto` (défaut) : élargit comme émetteur et accepte comme destinataire ;
+- `fixed` : limite stricte dans les deux rôles ;
+- `unlimited`.
+
+## 2026-11-09 — La cascade est une chaîne de beams indépendants
+Image des feux de Gondor. Répondre = lancer son propre beam (lié au parent), diffusé à ses propres amis. Personne ne voit les amis de ses amis. Les communautés seront le seul moyen de rendre visibles des non-amis. La visibilité est centralisée dans `Social.circle_ids/1`.
+
+## 2026-11-09 — Un beam exige une position récente
+Sans position, la règle de rayon n'a pas de sens. L'app envoie la position avec le beam ; `location_required` sinon.
+
+## 2026-11-09 — Fil flouté = compteur seulement
+Un client inactif reçoit `active_count`, jamais les identités : le flou ne peut pas être contourné en lisant la réponse de l'API.
+
+## 2026-11-09 — Seuils anti-spam initiaux
+6 beams par heure en émission ; en réception, 5 pushes par heure et une seule par émetteur et par heure. Ce sont des constantes de `Beamo.Beams` et des limites de contrôleur, à ajuster avec les données d'usage.
+
 ## 2026-11-09 — Pas de beam implicite à l'ouverture d'une notification
 Ouvrir une notification relève de la curiosité, pas de la disponibilité. Un beam implicite diffuserait statut et position sans consentement, et produirait des faux positifs. À la place : bouton « J'en suis » à un tap + signal « vu ».
 
-## 2026-11-09 — Cascade de réponses retenue
-Répondre à un beam notifie aussi les amis du répondant. Effet viral voulu par le produit. Conséquences à cadrer : visibilité de l'émetteur d'origine pour des non-amis, profondeur maximale, espaces de communauté.
-
 ## 2026-11-09 — Rayon : celui des deux
-Un ami est notifié si la distance est sous le rayon de l'émetteur **et** sous celui du destinataire. Chacun garde le contrôle.
+Un ami est notifié s'il est dans la portée de l'émetteur **et** dans son propre rayon. Chacun garde le contrôle.
 
 ## 2026-11-09 — Position arrondie, péremption à 7 jours
 Grille d'environ 550 m : suffisant pour un rayon, trop grossier pour situer un domicile. Mise à jour à l'ouverture de l'app seulement : la localisation en arrière-plan exige la permission « Toujours », que les stores examinent de près et que beaucoup d'utilisateurs refusent.
