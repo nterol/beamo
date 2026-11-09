@@ -62,6 +62,16 @@ defmodule BeamoWeb.AuthControllerTest do
       assert json_response(get(conn, ~p"/api/me"), 401)
     end
 
+    test "expired sessions are purged by the daily job", %{conn: conn} do
+      {conn, user} = authed(conn)
+      past = DateTime.add(DateTime.utc_now(:second), -1)
+      Beamo.Repo.update_all(Beamo.Accounts.Session, set: [expires_at: past])
+
+      assert :ok = Beamo.Accounts.SessionCleanupWorker.perform(%Oban.Job{})
+      refute Beamo.Repo.get_by(Beamo.Accounts.Session, user_id: user.id)
+      assert json_response(get(conn, ~p"/api/me"), 401)
+    end
+
     test "slides the expiry of an ageing session", %{conn: conn} do
       {conn, user} = authed(conn)
       soon = DateTime.add(DateTime.utc_now(:second), 10, :day)

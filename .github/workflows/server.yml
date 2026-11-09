@@ -1,0 +1,67 @@
+name: server
+
+on:
+  push:
+    branches: [main]
+    paths: ["server/**", "packages/api-client/**", ".github/workflows/server.yml", "mise.toml"]
+  pull_request:
+    paths: ["server/**", "packages/api-client/**", ".github/workflows/server.yml", "mise.toml"]
+
+env:
+  MIX_ENV: test
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: beamo
+          POSTGRES_PASSWORD: beamo
+        ports: ["5434:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "29.1.2"
+          elixir-version: "1.20.5"
+          version-type: strict
+      - uses: actions/cache@v4
+        with:
+          path: |
+            server/deps
+            server/_build
+          key: mix-${{ runner.os }}-${{ hashFiles('server/mix.lock', 'mise.toml') }}
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix compile --warnings-as-errors
+      - run: mix test
+      - run: mix openapi.check
+
+  api-client:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: packages/api-client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install -g pnpm@10
+      - run: pnpm install --ignore-workspace
+      - run: pnpm generate
+      - run: git diff --exit-code src/schema.d.ts
+      - run: pnpm typecheck
+
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build server

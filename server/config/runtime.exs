@@ -23,6 +23,7 @@ end
 config :beamo, BeamoWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 config :beamo, :expo_access_token, System.get_env("EXPO_ACCESS_TOKEN")
+config :beamo, :client_ip_header, System.get_env("CLIENT_IP_HEADER")
 
 if config_env() == :prod do
   database_url =

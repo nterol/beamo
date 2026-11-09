@@ -26,7 +26,11 @@ config :beamo, Oban,
   engine: Oban.Engines.Basic,
   repo: Beamo.Repo,
   queues: [default: 10, push: 20],
-  plugins: [{Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60}]
+  plugins: [
+    {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)},
+    {Oban.Plugins.Cron, crontab: [{"0 4 * * *", Beamo.Accounts.SessionCleanupWorker}]}
+  ]
 
 config :beamo, :otp_provider, Beamo.Accounts.OTP.Fake
 

@@ -1,7 +1,7 @@
 defmodule BeamoWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :beamo
 
-  socket "/socket", BeamoWeb.UserSocket, websocket: true, longpoll: false
+  socket "/socket", BeamoWeb.UserSocket, websocket: [check_origin: false], longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -23,6 +23,7 @@ defmodule BeamoWeb.Endpoint do
   end
 
   plug Plug.RequestId
+  plug BeamoWeb.Plugs.ClientIp
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
   plug Plug.Parsers,
