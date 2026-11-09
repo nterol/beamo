@@ -46,6 +46,7 @@ defmodule BeamoWeb.AuthController do
 
   def logout(conn, _params) do
     Accounts.delete_session(conn.assigns.session)
+    BeamoWeb.UserSocket.disconnect(conn.assigns.session.id)
     send_resp(conn, :no_content, "")
   end
 end

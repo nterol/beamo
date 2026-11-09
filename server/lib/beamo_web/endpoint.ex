@@ -1,6 +1,8 @@
 defmodule BeamoWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :beamo
 
+  socket "/socket", BeamoWeb.UserSocket, websocket: true, longpoll: false
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),

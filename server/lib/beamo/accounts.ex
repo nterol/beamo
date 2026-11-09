@@ -72,6 +72,14 @@ defmodule Beamo.Accounts do
 
   def delete_session(%Session{id: id}), do: Repo.delete_all(where(Session, id: ^id))
 
+  def session_ids(%User{id: id}),
+    do: Repo.all(from s in Session, where: s.user_id == ^id, select: s.id)
+
+  def delete_expired_sessions do
+    now = DateTime.utc_now(:second)
+    Repo.delete_all(from s in Session, where: s.expires_at <= ^now)
+  end
+
   def get_user(id), do: Repo.get(User, id)
 
   def update_settings(user, attrs), do: user |> User.settings_changeset(attrs) |> Repo.update()

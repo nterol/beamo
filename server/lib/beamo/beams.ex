@@ -3,8 +3,8 @@ defmodule Beamo.Beams do
 
   alias Beamo.Accounts
   alias Beamo.Accounts.User
-  alias Beamo.Beams.{Beam, FanoutWorker, Recipient, ReminderWorker}
-  alias Beamo.{Geo, Push, Repo, Social}
+  alias Beamo.Beams.{Beam, ExpireWorker, FanoutWorker, Recipient, ReminderWorker}
+  alias Beamo.{Communities, Geo, Push, Realtime, Repo, Social}
 
   @location_max_age_days 7
   @auto_reach_km [10, 25, 50, nil]
@@ -61,17 +61,23 @@ defmodule Beamo.Beams do
             )
           )
 
+          Oban.insert!(ExpireWorker.new(%{"beam_id" => beam.id}, scheduled_at: beam.expires_at))
+
           {:ok, beam}
         end
       end)
       |> case do
+        {:ok, beam} ->
+          broadcast_activity(user.id)
+          {:ok, beam}
+
         {:error, %Ecto.Changeset{errors: errors} = changeset} ->
           if Keyword.has_key?(errors, :user_id),
             do: {:error, :already_active},
             else: {:error, changeset}
 
-        result ->
-          result
+        error ->
+          error
       end
     end
   end
@@ -84,9 +90,33 @@ defmodule Beamo.Beams do
         where: b.user_id == ^id and is_nil(b.ended_at) and b.expires_at > ^now
 
     case Repo.update_all(query, set: [ended_at: now]) do
-      {0, _} -> {:error, :not_found}
+      {0, _} ->
+        {:error, :not_found}
+
+      _ ->
+        broadcast_activity(id)
+        :ok
+    end
+  end
+
+  def expire(beam_id) do
+    now = DateTime.utc_now(:second)
+
+    query =
+      from b in Beam,
+        where: b.id == ^beam_id and is_nil(b.ended_at) and b.expires_at <= ^now,
+        update: [set: [ended_at: field(b, :expires_at)]],
+        select: b.user_id
+
+    case Repo.update_all(query, []) do
+      {1, [user_id]} -> broadcast_activity(user_id)
       _ -> :ok
     end
+  end
+
+  defp broadcast_activity(user_id) do
+    audience = [user_id | Social.circle_ids(user_id)] ++ Communities.co_member_ids(user_id)
+    Realtime.notify(audience, "feed_changed")
   end
 
   defp locate(user, %{"lat" => _, "lng" => _} = attrs), do: Accounts.update_location(user, attrs)

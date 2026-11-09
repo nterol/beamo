@@ -3,7 +3,7 @@ defmodule Beamo.Communities do
 
   alias Beamo.Accounts.User
   alias Beamo.Communities.{Community, Member}
-  alias Beamo.{Beams, Push, Repo, Social}
+  alias Beamo.{Beams, Push, Realtime, Repo, Social}
 
   @max_members 50
 
@@ -18,6 +18,31 @@ defmodule Beamo.Communities do
         order_by: [asc: c.name],
         select: {c, count(m.id)}
     )
+  end
+
+  def co_member_ids(user_id) do
+    Repo.all(
+      from m in Member,
+        join: mine in Member,
+        on:
+          mine.community_id == m.community_id and mine.user_id == ^user_id and
+            mine.status == :member,
+        where: m.status == :member and m.user_id != ^user_id,
+        distinct: true,
+        select: m.user_id
+    )
+  end
+
+  defp member_ids(community_id) do
+    Repo.all(
+      from m in Member,
+        where: m.community_id == ^community_id and m.status == :member,
+        select: m.user_id
+    )
+  end
+
+  defp broadcast_change(community_id) do
+    Realtime.notify(member_ids(community_id), "community_changed", %{community_id: community_id})
   end
 
   def list_invitations(%User{id: id}) do
@@ -39,6 +64,7 @@ defmodule Beamo.Communities do
           insert_member!(community.id, me.id, nil, :member)
           Enum.each(ids, &insert_member!(community.id, &1, me.id, :invited))
           notify_invited(community, me, ids)
+          Realtime.notify(ids, "invitations_changed")
           {:ok, community}
         end
       end)
@@ -46,8 +72,10 @@ defmodule Beamo.Communities do
   end
 
   def rename(%User{} = me, community_id, attrs) do
-    with {:ok, community} <- get_community(me, community_id) do
-      community |> Community.changeset(attrs) |> Repo.update()
+    with {:ok, community} <- get_community(me, community_id),
+         {:ok, community} <- community |> Community.changeset(attrs) |> Repo.update() do
+      broadcast_change(community.id)
+      {:ok, community}
     end
   end
 
@@ -74,6 +102,8 @@ defmodule Beamo.Communities do
       Repo.transact(fn ->
         Enum.each(ids, &insert_member!(community.id, &1, me.id, :invited))
         notify_invited(community, me, ids)
+        Realtime.notify(ids, "invitations_changed")
+        broadcast_change(community.id)
         {:ok, length(ids)}
       end)
     end
@@ -85,8 +115,12 @@ defmodule Beamo.Communities do
         where: m.community_id == ^community_id and m.user_id == ^id and m.status == :invited
 
     case Repo.update_all(query, set: [status: :member, updated_at: DateTime.utc_now(:second)]) do
-      {1, _} -> :ok
-      {0, _} -> {:error, :not_found}
+      {1, _} ->
+        broadcast_change(community_id)
+        :ok
+
+      {0, _} ->
+        {:error, :not_found}
     end
   end
 
@@ -110,8 +144,12 @@ defmodule Beamo.Communities do
       end
     end)
     |> case do
-      {:ok, :left} -> :ok
-      error -> error
+      {:ok, :left} ->
+        broadcast_change(community_id)
+        :ok
+
+      error ->
+        error
     end
   end
 

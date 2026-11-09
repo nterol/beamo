@@ -2,7 +2,7 @@ defmodule Beamo.Social do
   import Ecto.Query
 
   alias Beamo.Accounts.User
-  alias Beamo.Repo
+  alias Beamo.{Realtime, Repo}
   alias Beamo.Social.{Block, Friendship, Mute}
 
   @max_contact_hashes 2000
@@ -75,6 +75,7 @@ defmodule Beamo.Social do
       true ->
         case Repo.insert(Friendship.request_changeset(id, target_id)) do
           {:ok, friendship} ->
+            friends_changed([id, target_id])
             {:ok, friendship}
 
           {:error, %Ecto.Changeset{errors: errors} = changeset} ->
@@ -92,25 +93,41 @@ defmodule Beamo.Social do
     end
   end
 
-  defp accept(friendship),
-    do: friendship |> Ecto.Changeset.change(status: :accepted) |> Repo.update()
+  defp accept(friendship) do
+    with {:ok, friendship} <-
+           friendship |> Ecto.Changeset.change(status: :accepted) |> Repo.update() do
+      friends_changed([friendship.requester_id, friendship.addressee_id])
+      {:ok, friendship}
+    end
+  end
+
+  defp friends_changed(user_ids), do: Realtime.notify(user_ids, "friends_changed")
 
   def delete_request(%User{id: id}, friendship_id) do
     query =
       from f in Friendship,
         where: f.id == ^friendship_id and f.status == :pending,
-        where: f.requester_id == ^id or f.addressee_id == ^id
+        where: f.requester_id == ^id or f.addressee_id == ^id,
+        select: [f.requester_id, f.addressee_id]
 
     case Repo.delete_all(query) do
-      {1, _} -> :ok
-      {0, _} -> {:error, :not_found}
+      {1, [pair]} ->
+        friends_changed(pair)
+        :ok
+
+      {0, _} ->
+        {:error, :not_found}
     end
   end
 
   def unfriend(%User{id: id}, other_id) do
     case Repo.delete_all(pair_query(id, other_id) |> where(status: :accepted)) do
-      {1, _} -> :ok
-      {0, _} -> {:error, :not_found}
+      {1, _} ->
+        friends_changed([id, other_id])
+        :ok
+
+      {0, _} ->
+        {:error, :not_found}
     end
   end
 
@@ -137,8 +154,12 @@ defmodule Beamo.Social do
       end
     end)
     |> case do
-      {:ok, :blocked} -> :ok
-      error -> error
+      {:ok, :blocked} ->
+        friends_changed([id, target_id])
+        :ok
+
+      error ->
+        error
     end
   end
 

@@ -21,7 +21,11 @@ defmodule BeamoWeb.MeController do
   end
 
   def delete(conn, _params) do
-    with {:ok, _user} <- Accounts.delete_user(conn.assigns.current_user) do
+    user = conn.assigns.current_user
+    session_ids = Accounts.session_ids(user)
+
+    with {:ok, _user} <- Accounts.delete_user(user) do
+      Enum.each(session_ids, &BeamoWeb.UserSocket.disconnect/1)
       send_resp(conn, :no_content, "")
     end
   end
