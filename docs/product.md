@@ -43,12 +43,16 @@ L'écran principal montre uniquement les amis, en couleur quand ils sont actifs.
   - Si Max répond, ce sont les amis de Max qui sont prévenus, et ainsi de suite.
 - La chaîne se propage de proche en proche, sans limite de profondeur. Chacun ne voit jamais que ses propres amis : il n'y a pas de logique de « cascade » à part.
 
-## Communautés (à construire)
+## Communautés
 
-- Un utilisateur qui connaît plusieurs personnes peut créer une communauté avec elles. Exemple : Léa réunit Tom et Max.
-- Les membres d'une communauté se voient mutuellement, comme des amis, même s'ils ne le sont pas.
-- Sans communauté, les cercles restent séparés.
-- Dans le code, la visibilité passe par `Social.circle_ids/1` (aujourd'hui, les amis seulement) : les communautés s'y brancheront.
+- Un utilisateur crée une communauté avec au moins un de ses amis. Exemple : Léa réunit Tom et Max, qui ne se connaissent pas.
+- Chaque membre peut ensuite inviter **ses propres amis**. Il n'est pas nécessaire d'être ami avec tous les membres.
+- Une invitation doit être acceptée. En attendant, l'invité apparaît comme une place grisée, sans identité, avec seulement le nom de la personne qui l'a invité. L'invité reçoit une push.
+- Les membres se voient mutuellement **uniquement dans le fil de la communauté**, flouté tant qu'on n'est pas actif, comme le fil principal.
+- Pas de notifications de beam entre membres non amis : pour en recevoir, il faut devenir amis.
+- On peut quitter ou refuser. La communauté disparaît quand le dernier membre part.
+- Tout membre peut renommer la communauté. 50 membres au maximum.
+- Les utilisateurs bloqués, dans un sens ou dans l'autre, sont masqués dans les communautés.
 
 ## Anti-spam et heures silencieuses
 

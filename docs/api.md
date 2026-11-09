@@ -9,7 +9,7 @@ Erreurs : `{"error": "<code>"}`, avec `details` (erreurs par champ) pour `invali
 | `unauthorized` | 401 |
 | `invalid_code` | 401 |
 | `not_found` | 404 (aussi renvoyé quand un blocage est en jeu) |
-| `invalid`, `cannot_target_self`, `too_many_items`, `location_required` | 422 |
+| `invalid`, `cannot_target_self`, `too_many_items`, `location_required`, `not_friends` | 422 |
 | `already_active` | 409 |
 | `too_many_requests` | 429, avec l'en-tête `retry-after` en secondes |
 | `provider_error` | 502 |
@@ -69,6 +69,25 @@ Notifications push envoyées (`data.type`) :
 - `beam_ending` : « Ton beam se termine dans 5 min ».
 
 Toutes portent `data.beam_id`.
+
+## Communautés
+
+| Méthode | Route | Corps | Réponse |
+|---|---|---|---|
+| GET | `/communities` | — | `{communities: [{id, name, member_count}]}` |
+| POST | `/communities` | `{name, user_ids: [amis]}` (au moins un) | 201 `{id, name}` |
+| GET | `/communities/:id` | — | `{id, name, active, active_count, members}` (membres seulement) |
+| PATCH | `/communities/:id` | `{name}` | `{id, name}` |
+| POST | `/communities/:id/invitations` | `{user_ids: [mes amis]}` | `{invited}` (déjà membres ou invités ignorés) |
+| POST | `/communities/:id/accept` | — | 204 |
+| DELETE | `/communities/:id/membership` | — | 204 (quitter ou refuser) |
+| GET | `/community-invitations` | — | `{invitations: [{community: {id, name}, invited_by}]}` |
+
+`members` contient, membres confirmés d'abord :
+- un membre : `{status: "member", user, beam, distance_km}`, avec `beam` toujours `null` si je ne suis pas actif ;
+- un invité : `{status: "invited", user: null, invited_by}`.
+
+Limite : 10 créations par heure. Une invitation envoie une push `data.type = community_invite`, avec `data.community_id`.
 
 ## Sourdine
 

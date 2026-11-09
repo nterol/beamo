@@ -25,9 +25,10 @@ Un seul service applicatif. Oban tourne dans le même processus que l'API et sto
 | `Beamo.Accounts` | Login OTP, sessions, réglages, position, suppression de compte |
 | `Beamo.Accounts.OTP` | Behaviour `start/1`, `check/2` + court-circuit du numéro de démo |
 | `Beamo.Accounts.OTP.Prelude` / `.Fake` | Fournisseur réel (prod) / code `000000` (dev, test) |
-| `Beamo.Social` | Amitiés, blocages, sourdines, matching de contacts ; `circle_ids/1` = qui je vois |
+| `Beamo.Social` | Amitiés, blocages, sourdines, matching de contacts ; `circle_ids/1` = à qui diffuser et qui voir dans le fil principal (amis seulement) |
 | `Beamo.Beams` | Cycle de vie des beams, diffusion, anti-spam, fil, « vu » |
 | `Beamo.Beams.FanoutWorker` / `ReminderWorker` | Jobs Oban : diffusion juste après la création, rappel à T-5 min |
+| `Beamo.Communities` | Communautés, invitations, fil de communauté |
 | `Beamo.Geo` | Distance haversine |
 | `Beamo.Push` | Tokens Expo, `notify/2` qui met en file les envois |
 | `Beamo.Push.Expo` | Client HTTP Expo Push |
@@ -50,6 +51,8 @@ Les contrôleurs renvoient du JSON avec `json/2`. La sérialisation des utilisat
 | `beams` | `user_id`, `parent_id` (beam auquel on répond), `category`, `note`, `lat`/`lng` (copie de la position à la création), `reach_km` (portée effective, `nil` = sans limite), `expires_at`, `ended_at` | Index unique partiel : un seul beam avec `ended_at` nul par utilisateur. Actif = `ended_at` nul et `expires_at` dans le futur ; les beams expirés sont clos à la création suivante |
 | `beam_recipients` | `beam_id`, `user_id`, `notified_at` (nul si push retenue), `seen_at` | Sert au « vu », aux stats et aux plafonds anti-spam |
 | `mutes` | `user_id`, `muted_id` | |
+| `communities` | `name`, `created_by_id` | |
+| `community_members` | `community_id`, `user_id`, `invited_by_id`, `status` (`invited`/`member`) | Unique par paire ; invité = ami de `invited_by` au moment de l'invitation |
 | `push_tokens` | `token` (unique), `platform` (`ios`/`android`) | Ré-enregistrer un token le rattache au nouvel utilisateur |
 | `oban_jobs` | — | Tables Oban (migration v14) |
 

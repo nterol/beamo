@@ -2,6 +2,12 @@
 
 Journal antichronologique. Chaque entrée : décision, raison, alternatives écartées.
 
+## 2026-11-09 — Communautés : visibilité sans notifications
+Les membres se voient dans le fil de la communauté uniquement ; les notifications de beam restent réservées aux amis. Création avec au moins un ami, puis chaque membre invite ses propres amis. Invitation à accepter, invité anonyme tant qu'il n'a pas accepté. `circle_ids/1` reste donc limité aux amis.
+
+## 2026-11-09 — L'auteur d'origine reçoit seulement « X a répondu »
+Quand on répond à son beam, l'auteur reçoit la notification de réponse, pas en plus l'annonce ordinaire du beam du répondant.
+
 ## 2026-11-09 — Trois modes de rayon
 Avec un rayon de 10 km par défaut des deux côtés et la règle « les deux rayons », l'élargissement automatique n'atteignait jamais personne. D'où trois modes :
 - `auto` (défaut) : élargit comme émetteur et accepte comme destinataire ;
