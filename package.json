@@ -4,18 +4,10 @@
   "private": true,
   "packageManager": "pnpm@10.34.6",
   "scripts": {
-    "dev": "pnpm -r --parallel --filter @beamo/api --filter @beamo/worker dev",
     "dev:infra": "docker compose -f infrastructure/docker-compose.yml up -d",
-    "dev:api": "pnpm --filter @beamo/api dev",
-    "dev:worker": "pnpm --filter @beamo/worker dev",
+    "dev:server": "cd server && mise exec -- mix phx.server",
     "dev:mobile": "pnpm --filter @beamo/mobile start",
-    "db:generate": "pnpm --filter @beamo/db db:generate",
-    "db:migrate": "pnpm --filter @beamo/db db:migrate",
-    "db:studio": "pnpm --filter @beamo/db db:studio",
-    "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test:server": "cd server && mise exec -- mix test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
