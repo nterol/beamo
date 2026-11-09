@@ -39,6 +39,18 @@ defmodule BeamoWeb.Router do
     post "/blocks", BlockController, :create
     delete "/blocks/:user_id", BlockController, :delete
 
+    get "/feed", FeedController, :index
+
+    post "/beams", BeamController, :create
+    get "/beams/current", BeamController, :current
+    delete "/beams/current", BeamController, :end_current
+    get "/beams/:id", BeamController, :show
+    post "/beams/:id/seen", BeamController, :seen
+
+    get "/mutes", MuteController, :index
+    post "/mutes", MuteController, :create
+    delete "/mutes/:user_id", MuteController, :delete
+
     post "/push-tokens", PushTokenController, :create
     delete "/push-tokens/:token", PushTokenController, :delete
   end

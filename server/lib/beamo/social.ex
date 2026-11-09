@@ -3,7 +3,7 @@ defmodule Beamo.Social do
 
   alias Beamo.Accounts.User
   alias Beamo.Repo
-  alias Beamo.Social.{Block, Friendship}
+  alias Beamo.Social.{Block, Friendship, Mute}
 
   @max_contact_hashes 2000
 
@@ -37,6 +37,8 @@ defmodule Beamo.Social do
           )
     )
   end
+
+  def circle_ids(user_id), do: friend_ids(user_id)
 
   def friends?(a_id, b_id) do
     Repo.exists?(pair_query(a_id, b_id) |> where(status: :accepted))
@@ -161,6 +163,34 @@ defmodule Beamo.Social do
         where:
           (b.blocker_id == ^a_id and b.blocked_id == ^b_id) or
             (b.blocker_id == ^b_id and b.blocked_id == ^a_id)
+    )
+  end
+
+  def mute(%User{id: id}, id), do: {:error, :self}
+
+  def mute(%User{id: id}, target_id) do
+    %Mute{user_id: id, muted_id: target_id}
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.foreign_key_constraint(:muted_id)
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:user_id, :muted_id])
+    |> case do
+      {:ok, _} -> :ok
+      {:error, _} -> {:error, :not_found}
+    end
+  end
+
+  def unmute(%User{id: id}, target_id) do
+    Repo.delete_all(from m in Mute, where: m.user_id == ^id and m.muted_id == ^target_id)
+    :ok
+  end
+
+  def list_muted(%User{id: id}) do
+    Repo.all(from u in User, join: m in Mute, on: m.muted_id == u.id, where: m.user_id == ^id)
+  end
+
+  def muting_ids(user_ids, muted_id) do
+    Repo.all(
+      from m in Mute, where: m.user_id in ^user_ids and m.muted_id == ^muted_id, select: m.user_id
     )
   end
 

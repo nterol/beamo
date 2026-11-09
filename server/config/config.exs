@@ -30,6 +30,8 @@ config :beamo, Oban,
 
 config :beamo, :otp_provider, Beamo.Accounts.OTP.Fake
 
+config :beamo, :beam_duration_minutes, 120
+
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 # Configure Elixir's Logger

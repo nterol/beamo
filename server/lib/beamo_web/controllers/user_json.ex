@@ -6,6 +6,7 @@ defmodule BeamoWeb.UserJSON do
       id: u.id,
       phone: u.phone,
       name: u.name,
+      radius_mode: u.radius_mode,
       radius_km: u.radius_km,
       quiet_start: u.quiet_start,
       quiet_end: u.quiet_end,

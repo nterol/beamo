@@ -10,6 +10,7 @@ defmodule BeamoWeb.MeControllerTest do
     conn =
       patch(conn, ~p"/api/me", %{
         name: "  Tom ",
+        radius_mode: "fixed",
         radius_km: 25,
         quiet_start: "23:00:00",
         quiet_end: "08:00:00",
@@ -18,6 +19,7 @@ defmodule BeamoWeb.MeControllerTest do
 
     assert %{
              "name" => "Tom",
+             "radius_mode" => "fixed",
              "radius_km" => 25,
              "quiet_start" => "23:00:00",
              "quiet_end" => "08:00:00",
@@ -25,8 +27,18 @@ defmodule BeamoWeb.MeControllerTest do
            } = json_response(conn, 200)
   end
 
-  test "a nil radius means no radius", %{conn: conn} do
-    assert %{"radius_km" => nil} = json_response(patch(conn, ~p"/api/me", %{radius_km: nil}), 200)
+  test "radius modes", %{conn: conn} do
+    assert %{"radius_mode" => "auto", "radius_km" => nil} =
+             json_response(get(conn, ~p"/api/me"), 200)
+
+    assert %{"details" => %{"radius_km" => _}} =
+             json_response(patch(conn, ~p"/api/me", %{radius_mode: "fixed"}), 422)
+
+    assert %{"radius_mode" => "unlimited", "radius_km" => nil} =
+             json_response(
+               patch(conn, ~p"/api/me", %{radius_mode: "unlimited", radius_km: 30}),
+               200
+             )
   end
 
   test "rejects an unknown timezone and half-set quiet hours", %{conn: conn} do

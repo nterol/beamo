@@ -8,7 +8,8 @@ defmodule Beamo.Accounts.User do
     field :phone, :string
     field :phone_hash, :string
     field :name, :string
-    field :radius_km, :integer, default: 10
+    field :radius_mode, Ecto.Enum, values: [:auto, :fixed, :unlimited], default: :auto
+    field :radius_km, :integer
     field :quiet_start, :time
     field :quiet_end, :time
     field :timezone, :string, default: "Europe/Paris"
@@ -37,10 +38,10 @@ defmodule Beamo.Accounts.User do
 
   def settings_changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :radius_km, :quiet_start, :quiet_end, :timezone])
+    |> cast(attrs, [:name, :radius_mode, :radius_km, :quiet_start, :quiet_end, :timezone])
     |> update_change(:name, &String.trim/1)
     |> validate_length(:name, min: 1, max: 40)
-    |> validate_number(:radius_km, greater_than: 0, less_than_or_equal_to: 500)
+    |> validate_radius()
     |> validate_required([:timezone])
     |> validate_change(:timezone, fn :timezone, tz ->
       if Tz.TimeZoneDatabase.time_zone_periods_from_wall_datetime(~N[2026-01-01 12:00:00], tz) ==
@@ -67,6 +68,18 @@ defmodule Beamo.Accounts.User do
 
   def location_changeset(user, _attrs) do
     user |> change() |> add_error(:location, "lat and lng must be numbers")
+  end
+
+  defp validate_radius(changeset) do
+    case get_field(changeset, :radius_mode) do
+      :fixed ->
+        changeset
+        |> validate_required([:radius_km])
+        |> validate_number(:radius_km, greater_than: 0, less_than_or_equal_to: 500)
+
+      _ ->
+        put_change(changeset, :radius_km, nil)
+    end
   end
 
   defp validate_quiet_hours(changeset) do
