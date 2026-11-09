@@ -1,6 +1,6 @@
 # État d'avancement
 
-Dernière mise à jour : 2026-11-09, branche `feat/phoenix-backend`.
+Dernière mise à jour : 2026-11-09, sur `main` (branche `feat/phoenix-backend` fusionnée).
 
 ## Serveur : terminé pour la v1
 
@@ -21,7 +21,7 @@ Dernière mise à jour : 2026-11-09, branche `feat/phoenix-backend`.
 ## À faire
 
 1. **Choisir l'hébergeur et déployer** (voir [deploy.md](deploy.md)). Il faudra côté porteur : compte d'hébergement, clé Prelude, nom de domaine.
-2. **Fusionner `feat/phoenix-backend` dans `main`** après un passage CI au vert sur GitHub.
+2. **Vérifier le premier passage de la CI** sur GitHub (workflow `server`, déclenché par la fusion dans `main`).
 3. **App mobile** : en attente des maquettes Figma. `apps/mobile` contient encore le template Expo. À prévoir :
    - consommer `@beamo/api-client` ;
    - écouter le canal `user:<id>` ;
