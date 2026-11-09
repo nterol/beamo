@@ -1,21 +1,23 @@
-# beamo monorepo
+# Beamo
 
-Monorepo pnpm pour app mobile React Native + backend NestJS (adapter Fastify)/Temporal/Prisma.
+App mobile où l'on se déclare dispo (un *beam*) pour prévenir ses amis autour de soi.
 
 ## Dossiers
 
-- `apps/api`: API HTTP NestJS (`@nestjs/platform-fastify`)
-- `apps/worker`: worker Temporal (workflows + activities)
-- `apps/mobile`: app React Native
-- `packages/db`: Prisma schema + client
-- `packages/contracts`: schémas/types partagés
-- `packages/notifications`: provider push notifications
-- `infrastructure`: Docker Compose local (Postgres + Temporal)
+- `server/` : API JSON et temps réel en Elixir/Phoenix, tâches différées avec Oban
+- `apps/mobile/` : app Expo (iOS + Android)
+- `infrastructure/` : Postgres local (Docker Compose) et variables d'environnement
 
-## Démarrage rapide
+## Démarrage
 
-1. Copier `infrastructure/env/.env.example` vers `.env` à la racine.
-2. Lancer l'infra locale: `pnpm dev:infra`
-3. Installer les dépendances: `pnpm install`
-4. Générer Prisma: `pnpm db:generate`
-5. Lancer API + worker: `pnpm dev`
+```sh
+brew install mise && mise install      # Erlang + Elixir, versions dans mise.toml
+pnpm dev:infra                         # Postgres sur localhost:5434
+cd server && mise exec -- mix setup    # dépendances + base + migrations
+pnpm dev:server                        # http://localhost:4000/api
+pnpm test:server
+```
+
+En dev, l'OTP est simulé : n'importe quel numéro E.164 accepte le code `000000`.
+
+Voir [docs/](docs/README.md) pour le produit, l'architecture, l'API et l'état d'avancement.
