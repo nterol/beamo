@@ -1,9 +1,63 @@
 defmodule BeamoWeb.CommunityController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Communities
   alias BeamoWeb.{BeamJSON, UserJSON}
   alias BeamoWeb.Plugs.RateLimit
+
+  alias BeamoWeb.Schemas
+
+  tags(["communities"])
+
+  operation(:index,
+    summary: "Mes communautés",
+    responses: [ok: Schemas.json("Communautés", Schemas.CommunitiesResponse)] ++ Schemas.errors()
+  )
+
+  operation(:create,
+    summary: "Créer une communauté avec des amis",
+    request_body: Schemas.json("Communauté", Schemas.CommunityCreateRequest),
+    responses: [created: Schemas.json("Créée", Schemas.Community)] ++ Schemas.errors()
+  )
+
+  operation(:show,
+    summary: "Fil d'une communauté (flouté tant que je ne suis pas actif)",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [ok: Schemas.json("Communauté", Schemas.CommunityResponse)] ++ Schemas.errors()
+  )
+
+  operation(:update,
+    summary: "Renommer",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    request_body: Schemas.json("Nom", Schemas.CommunityRenameRequest),
+    responses: [ok: Schemas.json("Communauté", Schemas.Community)] ++ Schemas.errors()
+  )
+
+  operation(:invite,
+    summary: "Inviter mes amis",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    request_body: Schemas.json("Invités", Schemas.CommunityInviteRequest),
+    responses:
+      [ok: Schemas.json("Invitations envoyées", Schemas.InviteResponse)] ++ Schemas.errors()
+  )
+
+  operation(:accept,
+    summary: "Accepter une invitation",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [no_content: "Membre"] ++ Schemas.errors()
+  )
+
+  operation(:leave,
+    summary: "Quitter ou refuser",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [no_content: "Parti"] ++ Schemas.errors()
+  )
+
+  operation(:invitations,
+    summary: "Mes invitations en attente",
+    responses: [ok: Schemas.json("Invitations", Schemas.InvitationsResponse)] ++ Schemas.errors()
+  )
 
   action_fallback BeamoWeb.FallbackController
 

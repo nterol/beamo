@@ -1,8 +1,18 @@
 defmodule BeamoWeb.FeedController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Beams
   alias BeamoWeb.{BeamJSON, UserJSON}
+
+  alias BeamoWeb.Schemas
+
+  tags(["beams"])
+
+  operation(:index,
+    summary: "Fil principal (flouté tant que je ne suis pas actif)",
+    responses: [ok: Schemas.json("Fil", Schemas.FeedResponse)] ++ Schemas.errors()
+  )
 
   def index(conn, _params) do
     case Beams.feed(conn.assigns.current_user) do

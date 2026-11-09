@@ -26,7 +26,7 @@ defmodule BeamoWeb.ConnCase do
 
       # Import conveniences for testing with connections
       import Plug.Conn
-      import Phoenix.ConnTest
+      import Phoenix.ConnTest, except: [json_response: 2]
       import BeamoWeb.ConnCase
       import Beamo.Fixtures
     end
@@ -36,6 +36,21 @@ defmodule BeamoWeb.ConnCase do
     Beamo.DataCase.setup_sandbox(tags)
     ip = {10, :rand.uniform(255), :rand.uniform(255), :rand.uniform(255)}
     {:ok, conn: %{Phoenix.ConnTest.build_conn() | remote_ip: ip}}
+  end
+
+  def json_response(conn, status) do
+    body = Phoenix.ConnTest.json_response(conn, status)
+    controller = conn.private[:phoenix_controller]
+
+    if controller && Code.ensure_loaded?(controller) &&
+         function_exported?(controller, :open_api_operation, 1) do
+      OpenApiSpex.TestAssertions.assert_operation_response(
+        conn,
+        "#{inspect(controller)}.#{conn.private.phoenix_action}"
+      )
+    end
+
+    body
   end
 
   def authed(conn, attrs \\ %{}) do

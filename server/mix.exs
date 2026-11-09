@@ -51,7 +51,8 @@ defmodule Beamo.MixProject do
       {:req, "~> 0.5"},
       {:oban, "~> 2.19"},
       {:hammer, "~> 7.0"},
-      {:tz, "~> 0.28"}
+      {:tz, "~> 0.28"},
+      {:open_api_spex, "~> 3.21"}
     ]
   end
 
@@ -67,6 +68,12 @@ defmodule Beamo.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      "openapi.export": [
+        "openapi.spec.json --spec BeamoWeb.ApiSpec --pretty=true --start-app=false --vendor-extensions=false ../packages/api-client/openapi.json"
+      ],
+      "openapi.check": [
+        "openapi.spec.json --spec BeamoWeb.ApiSpec --pretty=true --start-app=false --vendor-extensions=false --check=true ../packages/api-client/openapi.json"
+      ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end

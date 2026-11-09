@@ -3,14 +3,23 @@ defmodule BeamoWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: BeamoWeb.ApiSpec
   end
 
   pipeline :authenticated do
     plug BeamoWeb.Plugs.Auth
   end
 
+  scope "/api" do
+    pipe_through :api
+
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+  end
+
   scope "/api", BeamoWeb do
     pipe_through :api
+
+    get "/health", HealthController, :show
 
     post "/auth/otp/start", AuthController, :start
     post "/auth/otp/verify", AuthController, :verify

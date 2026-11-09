@@ -1,9 +1,34 @@
 defmodule BeamoWeb.AuthController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Accounts
   alias Beamo.Accounts.User
   alias BeamoWeb.Plugs.RateLimit
+
+  alias BeamoWeb.Schemas
+
+  tags(["auth"])
+
+  operation(:start,
+    summary: "Envoyer un code OTP par SMS",
+    description: "Répond toujours 204 pour un numéro bien formé.",
+    security: [],
+    request_body: Schemas.json("Numéro", Schemas.OtpStartRequest),
+    responses: [no_content: "Code envoyé"] ++ Schemas.errors()
+  )
+
+  operation(:verify,
+    summary: "Vérifier le code et ouvrir une session",
+    security: [],
+    request_body: Schemas.json("Numéro et code", Schemas.OtpVerifyRequest),
+    responses: [ok: Schemas.json("Session ouverte", Schemas.AuthResponse)] ++ Schemas.errors()
+  )
+
+  operation(:logout,
+    summary: "Fermer la session courante",
+    responses: [no_content: "Session fermée"] ++ Schemas.errors()
+  )
 
   action_fallback BeamoWeb.FallbackController
 

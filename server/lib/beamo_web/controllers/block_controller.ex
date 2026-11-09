@@ -1,8 +1,30 @@
 defmodule BeamoWeb.BlockController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Social
   alias BeamoWeb.UserJSON
+
+  alias BeamoWeb.Schemas
+
+  tags(["blocks"])
+
+  operation(:index,
+    summary: "Utilisateurs que j'ai bloqués",
+    responses: [ok: Schemas.json("Bloqués", Schemas.BlocksResponse)] ++ Schemas.errors()
+  )
+
+  operation(:create,
+    summary: "Bloquer quelqu'un",
+    request_body: Schemas.json("Cible", Schemas.UserIdRequest),
+    responses: [no_content: "Bloqué"] ++ Schemas.errors()
+  )
+
+  operation(:delete,
+    summary: "Débloquer",
+    parameters: [user_id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [no_content: "Débloqué"] ++ Schemas.errors()
+  )
 
   action_fallback BeamoWeb.FallbackController
 

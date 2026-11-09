@@ -1,9 +1,21 @@
 defmodule BeamoWeb.ContactController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Social
   alias BeamoWeb.Plugs.RateLimit
   alias BeamoWeb.UserJSON
+
+  alias BeamoWeb.Schemas
+
+  tags(["contacts"])
+
+  operation(:match,
+    summary: "Retrouver mes contacts inscrits",
+    request_body: Schemas.json("Hashes", Schemas.ContactMatchRequest),
+    responses:
+      [ok: Schemas.json("Correspondances", Schemas.ContactMatchResponse)] ++ Schemas.errors()
+  )
 
   action_fallback BeamoWeb.FallbackController
 

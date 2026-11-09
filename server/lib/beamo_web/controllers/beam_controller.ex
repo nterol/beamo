@@ -1,9 +1,42 @@
 defmodule BeamoWeb.BeamController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Beams
   alias BeamoWeb.{BeamJSON, UserJSON}
   alias BeamoWeb.Plugs.RateLimit
+
+  alias BeamoWeb.Schemas
+
+  tags(["beams"])
+
+  operation(:create,
+    summary: "Lancer un beam (ou répondre avec parent_id)",
+    request_body: Schemas.json("Beam", Schemas.BeamCreateRequest),
+    responses: [created: Schemas.json("Beam lancé", Schemas.BeamResponse)] ++ Schemas.errors()
+  )
+
+  operation(:current,
+    summary: "Mon beam en cours et ses statistiques",
+    responses: [ok: Schemas.json("Beam courant", Schemas.CurrentBeamResponse)] ++ Schemas.errors()
+  )
+
+  operation(:end_current,
+    summary: "Arrêter mon beam",
+    responses: [no_content: "Arrêté"] ++ Schemas.errors()
+  )
+
+  operation(:show,
+    summary: "Un beam reçu (ouverture depuis une notification)",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [ok: Schemas.json("Beam", Schemas.ReceivedBeamResponse)] ++ Schemas.errors()
+  )
+
+  operation(:seen,
+    summary: "Marquer un beam reçu comme vu",
+    parameters: [id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [no_content: "Vu"] ++ Schemas.errors()
+  )
 
   action_fallback BeamoWeb.FallbackController
 

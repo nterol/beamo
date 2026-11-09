@@ -1,8 +1,30 @@
 defmodule BeamoWeb.MuteController do
   use BeamoWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Beamo.Social
   alias BeamoWeb.UserJSON
+
+  alias BeamoWeb.Schemas
+
+  tags(["mutes"])
+
+  operation(:index,
+    summary: "Amis en sourdine",
+    responses: [ok: Schemas.json("Sourdines", Schemas.MutesResponse)] ++ Schemas.errors()
+  )
+
+  operation(:create,
+    summary: "Mettre un ami en sourdine",
+    request_body: Schemas.json("Cible", Schemas.UserIdRequest),
+    responses: [no_content: "En sourdine"] ++ Schemas.errors()
+  )
+
+  operation(:delete,
+    summary: "Retirer la sourdine",
+    parameters: [user_id: [in: :path, schema: Schemas.uuid(), required: true]],
+    responses: [no_content: "Retirée"] ++ Schemas.errors()
+  )
 
   action_fallback BeamoWeb.FallbackController
 
