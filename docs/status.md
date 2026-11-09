@@ -2,36 +2,41 @@
 
 Dernière mise à jour : 2026-11-09, branche `feat/phoenix-backend`.
 
-## Fait
+## Serveur : terminé pour la v1
 
 - [x] Projet Phoenix dans `server/`, Postgres 17 en local sur le port 5434, versions fixées par mise
-- [x] Auth OTP (Prelude, faux fournisseur en dev/test, numéro de démo), sessions glissantes, déconnexion
+- [x] Auth OTP (Prelude, faux fournisseur en dev/test, numéro de démo), sessions glissantes, déconnexion, purge quotidienne des sessions expirées
 - [x] Profil et réglages : nom, mode de rayon, heures silencieuses, fuseau, suppression de compte
-- [x] Position arrondie (`PUT /me/location`)
-- [x] Amitiés : demande, acceptation, demande croisée, refus/annulation, suppression
-- [x] Blocages, sourdines
-- [x] Matching de contacts par hash
-- [x] Tokens push + envoi Expo via Oban + purge des tokens morts (tickets et receipts)
-- [x] **Beams** : création et arrêt, durée côté serveur, diffusion géolocalisée avec portée auto par paliers, réponses en chaîne, « vu », rappel T-5 min, fil flouté tant qu'on est inactif
-- [x] Anti-spam : 6 beams/h en émission ; en réception, heures silencieuses, sourdine, 1 push par émetteur et par heure, 5 pushes/h
-- [x] **Communautés** : création avec des amis, invitations à accepter (invités anonymes), chaque membre invite ses amis, départ, fil de communauté flouté, push d'invitation
-- [x] Rate limiting : OTP, contacts, demandes d'ami, beams, communautés
-- [x] 61 tests ExUnit au vert
+- [x] Position arrondie
+- [x] Amitiés, blocages, sourdines, matching de contacts
+- [x] Push Expo via Oban, purge des tokens morts
+- [x] Beams : diffusion géolocalisée avec portée auto, réponses en chaîne, « vu », rappel T-5 min, expiration, fil flouté
+- [x] Anti-spam émission et réception, heures silencieuses
+- [x] Communautés : invitations, invités anonymes, fil de communauté flouté
+- [x] Temps réel : socket authentifié, signaux `feed_changed` / `friends_changed` / `invitations_changed` / `community_changed`
+- [x] Contrat OpenAPI (`/api/openapi`) validé par les tests + client TypeScript généré (`packages/api-client`)
+- [x] Release Docker testée localement, CI GitHub Actions, IP client derrière proxy
+- [x] 71 tests ExUnit au vert
 
-## À faire, dans l'ordre
+## À faire
 
-1. **Temps réel** : socket authentifié par token, Channel utilisateur, événements « ami actif / inactif », Presence.
-2. **Contrat mobile** : spec OpenAPI (`open_api_spex`) + client TypeScript généré.
-3. **Déploiement** : Dockerfile de release, CI GitHub Actions, choix de l'hébergeur, en-tête d'IP du proxy pour le rate limiting.
-4. **App mobile** : en attente des maquettes Figma ; aujourd'hui, `apps/mobile` contient encore le template Expo.
-5. Plus tard : amis d'amis (double tap), inconnus (triple tap, PostGIS).
+1. **Choisir l'hébergeur et déployer** (voir [deploy.md](deploy.md)). Il faudra côté porteur : compte d'hébergement, clé Prelude, nom de domaine.
+2. **Fusionner `feat/phoenix-backend` dans `main`** après un passage CI au vert sur GitHub.
+3. **App mobile** : en attente des maquettes Figma. `apps/mobile` contient encore le template Expo. À prévoir :
+   - consommer `@beamo/api-client` ;
+   - écouter le canal `user:<id>` ;
+   - envoyer la position à l'ouverture et avec chaque beam ;
+   - enregistrer le token push ;
+   - hasher les contacts en E.164 puis SHA-256.
+4. Plus tard : amis d'amis (double tap), inconnus (triple tap, PostGIS), Hammer sur Redis si plusieurs nœuds.
 
 ## Questions ouvertes (pour le porteur)
 
 - Durée du beam (2 h aujourd'hui), paliers de portée (10/25/50/illimité), seuils anti-spam : à ajuster avec l'usage.
-- Communautés : qui peut renommer (aujourd'hui, tout membre) ? Faut-il un rôle d'administrateur ?
+- Communautés : tout membre peut renommer ; faut-il un administrateur ?
 
 ## Points d'attention
 
 - `path/to/venv/` à la racine est un environnement Python créé par erreur (ignoré par git) : à supprimer.
 - `apps/mobile` utilise `package-lock.json` (npm) alors que la racine est un workspace pnpm : à harmoniser au moment de reprendre le mobile.
+- La CI n'a pas encore tourné sur GitHub : la première exécution validera notamment la disponibilité d'OTP 29.1.2 / Elixir 1.20.5 dans `erlef/setup-beam`.

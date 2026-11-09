@@ -6,6 +6,7 @@ App mobile où l'on se déclare dispo (un *beam*) pour prévenir ses amis autour
 
 - `server/` : API JSON et temps réel en Elixir/Phoenix, tâches différées avec Oban
 - `apps/mobile/` : app Expo (iOS + Android)
+- `packages/api-client/` : types TypeScript générés depuis la spec OpenAPI du serveur
 - `infrastructure/` : Postgres local (Docker Compose) et variables d'environnement
 
 ## Démarrage

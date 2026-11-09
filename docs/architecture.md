@@ -4,7 +4,7 @@
 
 ```
 Expo (iOS/Android) ──HTTP JSON──▶ Phoenix (server/) ──▶ PostgreSQL
-        ▲            ──WebSocket (à venir)──▶   │
+        ▲            ──WebSocket /socket──▶     │
         │                                       ├──▶ Prelude Verify (OTP SMS)
         └────────── APNs / FCM ◀── Expo Push ◀──┘ (via jobs Oban)
 ```
@@ -16,7 +16,8 @@ Un seul service applicatif. Oban tourne dans le même processus que l'API et sto
 - Erlang 29.1.2 / Elixir 1.20.5, fixés par `mise.toml` (`mise exec -- mix …`).
 - Postgres 17 via `infrastructure/docker-compose.yml`, sur **localhost:5434** (le 5432 est pris par un autre projet local).
 - Phoenix 1.8 généré en `--no-html --binary-id` : API seule, UUID partout.
-- Dépendances ajoutées : `oban`, `req` (HTTP), `hammer` (rate limiting ETS), `tz` (fuseaux horaires).
+- Dépendances ajoutées : `oban`, `req` (HTTP), `hammer` (rate limiting ETS), `tz` (fuseaux horaires), `open_api_spex` (contrat d'API).
+- `packages/api-client` : types TypeScript générés depuis la spec, installé hors workspace (`pnpm install --ignore-workspace`) pour ne pas toucher au `node_modules` npm du mobile.
 
 ## Organisation du code (`server/lib`)
 
@@ -36,6 +37,12 @@ Un seul service applicatif. Oban tourne dans le même processus que l'API et sto
 | `Beamo.RateLimit` | Hammer en ETS (un seul nœud) |
 | `BeamoWeb.Plugs.Auth` | `Authorization: Bearer <token>` → `conn.assigns.current_user` / `:session` |
 | `BeamoWeb.Plugs.RateLimit` | Limite par `:ip`, `:user` ou `{:param, "phone"}` |
+| `Beamo.Realtime` | `notify(user_ids, event, payload)` via PubSub |
+| `BeamoWeb.UserSocket` / `UserChannel` | Socket authentifié par token, canal privé `user:<id>` qui relaie les signaux |
+| `Beamo.Beams.ExpireWorker` | Clôt le beam à l'échéance et émet `feed_changed` |
+| `Beamo.Accounts.SessionCleanupWorker` | Cron Oban quotidien (4 h UTC) : purge des sessions expirées |
+| `BeamoWeb.Plugs.ClientIp` | Réécrit `remote_ip` depuis `CLIENT_IP_HEADER` (dernier saut) |
+| `BeamoWeb.ApiSpec` / `BeamoWeb.Schemas` / `BeamoWeb.ApiSchema` | Spec OpenAPI, schémas, helpers (`object/3` impose `additionalProperties: false`) |
 | `BeamoWeb.FallbackController` | Traduit les `{:error, …}` des contextes en réponses HTTP |
 
 Les contrôleurs renvoient du JSON avec `json/2`. La sérialisation des utilisateurs passe par `BeamoWeb.UserJSON` : `me/1` pour soi-même, `public/1` pour les autres (`id`, `name`).
@@ -72,10 +79,17 @@ Suppression de compte : tout est en `on_delete: :delete_all` sur `users`.
 - `mix test` : ExUnit contre la vraie base `beamo_test` (sandbox SQL, `async: true`).
 - Appels HTTP externes simulés avec `Req.Test` (`config/test.exs` branche les stubs `Beamo.Push.Expo` et `Beamo.Accounts.OTP.Prelude`).
 - Oban en `testing: :manual` : `assert_enqueued` / `perform_job`.
+- **Contrat** : dans `ConnCase`, `json_response/2` valide chaque réponse contre le schéma de son opération OpenAPI. Un champ en trop ou manquant fait échouer le test. `ApiSpecTest` vérifie que chaque route `/api` est documentée.
+- Canaux : `BeamoWeb.ChannelCase`.
 - Helpers : `Beamo.Fixtures` (`user_fixture`, `user_with_token`, `befriend`, `unique_phone`) et `authed/2` dans `ConnCase`. Chaque test a une IP aléatoire, pour que les limites par IP ne débordent pas d'un test à l'autre.
 
-## Configuration production (`config/runtime.exs`)
+## Configuration production
 
-`DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `PRELUDE_API_KEY` (obligatoires) ; `EXPO_ACCESS_TOKEN`, `OTP_TEST_PHONE`, `OTP_TEST_CODE` (optionnels).
+Voir [deploy.md](deploy.md).
 
-Derrière un reverse proxy, `conn.remote_ip` devra être réécrit depuis l'en-tête du proxy, sinon les limites par IP s'appliquent à l'IP du proxy.
+## CI
+
+`.github/workflows/server.yml` :
+- format, compilation sans warning, tests, `mix openapi.check` ;
+- types TypeScript régénérés et à jour, typecheck ;
+- build Docker.

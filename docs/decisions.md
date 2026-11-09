@@ -2,6 +2,12 @@
 
 Journal antichronologique. Chaque entrée : décision, raison, alternatives écartées.
 
+## 2026-11-09 — Temps réel = signaux de rafraîchissement
+Le WebSocket n'envoie aucune donnée, seulement « ceci a changé ». Les données passent toujours par l'API REST, qui applique la règle du flou : impossible de fuiter un beam à un utilisateur inactif via le socket, et un seul chemin de lecture à maintenir. Pas de Presence (« en ligne ») : le produit ne repose que sur « actif », qui est un état serveur.
+
+## 2026-11-09 — Contrat OpenAPI vérifié par les tests
+`open_api_spex` documente chaque route. Les tests valident chaque réponse JSON contre son schéma strict, et la CI échoue si la spec exportée ou les types TypeScript dérivent. Le mobile consomme des types générés plutôt qu'une doc à la main.
+
 ## 2026-11-09 — Communautés : visibilité sans notifications
 Les membres se voient dans le fil de la communauté uniquement ; les notifications de beam restent réservées aux amis. Création avec au moins un ami, puis chaque membre invite ses propres amis. Invitation à accepter, invité anonyme tant qu'il n'a pas accepté. `circle_ids/1` reste donc limité aux amis.
 

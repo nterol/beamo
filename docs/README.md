@@ -7,6 +7,7 @@
 3. [architecture.md](architecture.md) : stack, organisation du code, modèle de données, conventions.
 4. [api.md](api.md) : les endpoints exposés au mobile.
 5. [decisions.md](decisions.md) : journal des décisions et de leurs raisons.
+6. [deploy.md](deploy.md) : mise en production.
 
 ## Conventions de travail
 

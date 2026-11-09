@@ -1,5 +1,7 @@
 # API
 
+La source de vérité est la spec OpenAPI, servie sur `GET /api/openapi` et exportée dans `packages/api-client/openapi.json`. Ce document en donne une vue d'ensemble.
+
 Base : `/api`. JSON partout. Authentification : `Authorization: Bearer <token>`, sauf pour `/auth/otp/*`.
 
 Erreurs : `{"error": "<code>"}`, avec `details` (erreurs par champ) pour `invalid` sur un changeset.
@@ -13,6 +15,13 @@ Erreurs : `{"error": "<code>"}`, avec `details` (erreurs par champ) pour `invali
 | `already_active` | 409 |
 | `too_many_requests` | 429, avec l'en-tête `retry-after` en secondes |
 | `provider_error` | 502 |
+
+## Système
+
+| Méthode | Route | Réponse |
+|---|---|---|
+| GET | `/health` | `{status: "ok"}` |
+| GET | `/openapi` | La spec OpenAPI 3 |
 
 ## Auth
 
@@ -119,3 +128,39 @@ Limite : 10 créations par heure. Une invitation envoie une push `data.type = co
 |---|---|---|---|
 | POST | `/push-tokens` | `{token: "ExponentPushToken[…]", platform: "ios"\|"android"}` | 204 |
 | DELETE | `/push-tokens/:token` | — | 204 (uniquement ses propres tokens) |
+
+## Temps réel
+
+WebSocket Phoenix sur `/socket/websocket?token=<bearer>&vsn=2.0.0` (client JS `phoenix`). Rejoindre le canal `user:<mon id>`. Il est privé : rejoindre celui d'un autre est refusé.
+
+Le canal ne transporte **que des signaux**, sans données. L'app recharge alors l'endpoint concerné, qui applique la règle du flou :
+
+| Événement | Payload | À recharger |
+|---|---|---|
+| `feed_changed` | `{}` | `/feed`, `/beams/current`, fils des communautés ouverts |
+| `friends_changed` | `{}` | `/friends`, `/friend-requests` |
+| `invitations_changed` | `{}` | `/community-invitations` |
+| `community_changed` | `{community_id}` | `/communities/:id`, `/communities` |
+
+Qui reçoit `feed_changed` quand X lance, arrête ou voit expirer son beam : X lui-même, ses amis et les membres de ses communautés.
+
+La déconnexion (`DELETE /auth/session`) et la suppression de compte ferment les sockets de la session.
+
+## Client TypeScript
+
+`packages/api-client` (`@beamo/api-client`) contient les types générés (`src/schema.d.ts`) et un client `openapi-fetch` :
+
+```ts
+import { createBeamoClient } from "@beamo/api-client";
+
+const api = createBeamoClient({
+  baseUrl: "https://api.beamo.app",
+  getToken: () => SecureStore.getItemAsync("token"),
+  onUnauthorized: () => signOut(),
+});
+
+const { data, error } = await api.GET("/api/feed");
+await api.POST("/api/beams", { body: { category: "drink", lat, lng } });
+```
+
+Après toute modification de l'API : `cd server && mise exec -- mix openapi.export`, puis `cd packages/api-client && pnpm generate`. La CI échoue si la spec ou les types ne sont pas à jour.
