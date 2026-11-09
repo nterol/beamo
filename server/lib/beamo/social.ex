@@ -157,6 +157,24 @@ defmodule Beamo.Social do
     )
   end
 
+  def blocked_ids(user_id) do
+    Repo.all(
+      from b in Block,
+        where: b.blocker_id == ^user_id or b.blocked_id == ^user_id,
+        select:
+          type(
+            fragment(
+              "CASE WHEN ? = ? THEN ? ELSE ? END",
+              b.blocker_id,
+              type(^user_id, :binary_id),
+              b.blocked_id,
+              b.blocker_id
+            ),
+            :binary_id
+          )
+    )
+  end
+
   def blocked_between?(a_id, b_id) do
     Repo.exists?(
       from b in Block,

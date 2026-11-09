@@ -47,6 +47,15 @@ defmodule BeamoWeb.Router do
     get "/beams/:id", BeamController, :show
     post "/beams/:id/seen", BeamController, :seen
 
+    get "/communities", CommunityController, :index
+    post "/communities", CommunityController, :create
+    get "/communities/:id", CommunityController, :show
+    patch "/communities/:id", CommunityController, :update
+    post "/communities/:id/invitations", CommunityController, :invite
+    post "/communities/:id/accept", CommunityController, :accept
+    delete "/communities/:id/membership", CommunityController, :leave
+    get "/community-invitations", CommunityController, :invitations
+
     get "/mutes", MuteController, :index
     post "/mutes", MuteController, :create
     delete "/mutes/:user_id", MuteController, :delete

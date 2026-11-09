@@ -9,6 +9,11 @@ defmodule Beamo.Fixtures do
     {user, token}
   end
 
+  def session_token(user) do
+    {:ok, token, _user, _new?} = Accounts.verify_and_login(user.phone, "000000")
+    token
+  end
+
   def user_fixture(attrs \\ %{}), do: attrs |> user_with_token() |> elem(0)
 
   @places %{

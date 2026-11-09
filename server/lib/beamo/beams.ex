@@ -290,16 +290,19 @@ defmodule Beamo.Beams do
     :ok
   end
 
-  def feed(%User{} = me) do
+  def active_beams_by_user(user_ids) do
     now = DateTime.utc_now(:second)
+
+    Repo.all(
+      from b in Beam, where: b.user_id in ^user_ids and is_nil(b.ended_at) and b.expires_at > ^now
+    )
+    |> Map.new(&{&1.user_id, &1})
+  end
+
+  def feed(%User{} = me) do
     circle = Social.circle_ids(me.id)
 
-    active =
-      Repo.all(
-        from b in Beam,
-          where: b.user_id in ^circle and is_nil(b.ended_at) and b.expires_at > ^now
-      )
-      |> Map.new(&{&1.user_id, &1})
+    active = active_beams_by_user(circle)
 
     case current_beam(me.id) do
       nil ->
@@ -376,5 +379,5 @@ defmodule Beamo.Beams do
     end
   end
 
-  defp approx_km(point, beam), do: max(1, round(Geo.distance_km(point, {beam.lat, beam.lng})))
+  def approx_km(point, beam), do: max(1, round(Geo.distance_km(point, {beam.lat, beam.lng})))
 end
