@@ -8,6 +8,7 @@
 4. [api.md](api.md) : les endpoints exposés au mobile.
 5. [decisions.md](decisions.md) : journal des décisions et de leurs raisons.
 6. [deploy.md](deploy.md) : mise en production.
+7. [screens.md](screens.md) : inventaire des écrans de l'app mobile, base des maquettes Figma.
 
 ## Conventions de travail
 
